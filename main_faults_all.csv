@@ -1,0 +1,11 @@
+Faults;Exhaust Gas Temp;Scavenge Pressure;Turbocharger Speed;Pcomp/Pscav;Maximum Pressure;Compression Pressure;BSFC;Pmax-Pcomp;Possibility;TC speed/Pscav;Pexh;AC press drop;Tscav;Comp. Delivery Temperature;Pscav - Pexh;Fuel Consumption
+Injection nozzles (or fuel valves) in poor condition, nozzle tip broken;1;1;1;1;-1;1;1;-1;0.27;1;1;1;1;1;1;1
+Start of injection too late;1;1;1;0;-1;1;1;-1;0.27;0;1;1;0;1;1;1
+Turbine Rotor blade tips damaged (rubbing);1;-1;-1;-1;-1;-1;1;1;0.044;1;-1;-1;0;-1;-1;1
+Exhaust valve leaking;1;1;1;-1;-1;-1;1;100;0.032;100;100;100;100;100;100;1
+Blow-by in combustion chamber;1;1;1;-1;-1;-1;1;100;0.066;-1;1;1;1;1;1;1
+Air Filter before Compressor fouled;1;-1;1;0;-1;-1;0;0;0.025;1;-1;0;0;1;-1;1
+Late exhaust valve timing;0;0;0;-1;-1;-1;0;1;0.119;0;0;0;0;0;-1;0
+Scavenge ports in cylinder liner dirty;0;0;0;-1;0;0;0;0;0.025;0;0;0;0;0;1;100
+Fouled air or water side (AC) -Cooling water pipes or water passages chocked;1;1;1;100;1;1;1;-1;0.025;100;1;0;1;1;1;1
+Start of injection too early;-1;-1;-1;0;1;-1;-1;1;0.27;0;-1;-1;0;-1;-1;-1
