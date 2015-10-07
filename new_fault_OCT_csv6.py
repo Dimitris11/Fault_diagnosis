@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import create_table
 
-cases = [1,2,3,4,5] # exclude zeros
-lim_main  = 5
-lim_suppl = 2 
+#cases = [1,2,3,4,5] # exclude zeros
+lim_main  = 4
+lim_suppl = 3 
 filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
@@ -149,11 +149,19 @@ c_all3 = [list(x) for x in c_all3]
 #c_all2 = map(add, c2_save, cc2_save)
 
 
-#
-#for n, f in enumerate(fault_counter2):
-#    for i in f:
-#        if  meas_main[n][critical_indeces[i]-1] == fault_symptom[i][critical_indeces[i]]:
-#            print n, faults[i], c_all[n]
+# Print no of report, fault, overall occurences of fault, 
+ok_idx = ['']*len(fault_counter2) 
+for n, f in enumerate(fault_counter2):
+    ok_idex = ['']*len(faults)    
+    for i in f:
+#        print i
+        if  meas_main[n][critical_indeces[i]-1] == fault_symptom[i][critical_indeces[i]]:
+            ok_idex[i] = 'OK'
+#    print n, faults[i], c_all3[n][i], ok_idex[0]
+    ok_idx[n]=ok_idex
+
+
+        
         
   
 ###############################################################################
@@ -178,6 +186,13 @@ c_all3 = [list(x) for x in c_all3]
 #            f.write(str(item)+';')
 #        f.write('\n')
 #    f.close()
+
+with open('final_data.csv', 'w') as f:
+    for n, ss in enumerate(fault_counter2):
+        for i in ss:
+            val = str(n)+';'+faults[i]+';'+str(c_all3[n][i])+';'+ ok_idx[n][i]+';'+possibilities[i]+'\n'
+            f.write(val)
+    f.close()
 
 ###############################################################################
 #-------------------------POST-PROCESSING OF DATA-----------------------------#
@@ -238,7 +253,7 @@ for v in range(0, len(vessel_f)):
     fault_occurence_per_vessel[v] = tt 
 
 # Faults as 0's and 1's per vessel per report
-vessel = [0]*len(vessel_f)
+vessel = [0]*len(vessel_f); rr = [];
 for v in range(len(vessel_f)):
     report = [0]*len(vessel_f[v])
     for r in range(len(vessel_f[v])):
@@ -248,9 +263,19 @@ for v in range(len(vessel_f)):
                 fault_per_report[i] = 1
             else:
                 fault_per_report[i] = 0
-        report[r] = fault_per_report    
+        report[r] = fault_per_report
+        rr.append(fault_per_report)
     vessel[v] = report
 
+# Replace ACES with their Occurences, c
+for i in range(len(rr)):
+    for x in range(len(rr[i])):
+        if rr[i][x] == 1:
+            rr[i][x] = c_all3[i][x]
+
+#ccc = np.array(c_all3)
+#rr = np.array(rr)
+#ccc = ccc[rr.astype(bool)]
 ##############
 # WRITE TO FILE WITH FAULTS AS 0's AND 1's 
 s=0
@@ -370,20 +395,6 @@ plt.close() # so as not to consume memory
 #    plt.ylim([0,1])    
 #    plt.yticks([])
 #    plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
