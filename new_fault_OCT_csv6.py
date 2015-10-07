@@ -7,12 +7,12 @@ Created on Thu Oct 01 11:33:04 2015
 ###############################################################################
 #------------------------FUNCTIONS USED---------------------------------------#
 ###############################################################################
-#import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import create_table
 
-#cases = [1] # exclude zeros
+cases = [1,2,3,4,5] # exclude zeros
 lim_main  = 5
 lim_suppl = 2 
 filename1 = 'main_faults_some.csv'
@@ -32,7 +32,7 @@ fault_symptom = fulltable[1:row_count]
 
 # Separate main and supplemetary parameters in 2 different lists (tables)
 fault_symptom_main = [fault_symptom[i][0:10] for i in range(row_count-1)]
-fault_symptom_suppl = [fault_symptom[i][10:len(fault_symptom[0])+1] for i in range(row_count-1)]
+fault_symptom_suppl = [fault_symptom[i][10:len(fault_symptom[0])-1] for i in range(row_count-1)]
 
 # Store the engine's parameters(symptoms) in a list
 parameters = fulltable[0]
@@ -41,6 +41,7 @@ parameters_suppl = fulltable[0][10:]
 # Store the engine's possible faults in a list
 faults = [fulltable[i][0] for i in range(1, row_count)]
 possibilities = [fulltable[i][9] for i in range(1, row_count)]
+critical_indeces = [int(fulltable[i][-1]) for i in range(1, row_count)]
 #read and store the MEASUREMENTS csv
 try: cases
 except NameError: cases = None
@@ -69,14 +70,17 @@ for i in range (1, row_count2):
 
 # 1st part - Compare Main Symptoms
 i=-1; bc = ['']*len(vessel_name); cc = ['']*len(vessel_name);
-tdc = ['']*len(vessel_name); c_save = ['']*len(vessel_name);
+tdc = ['']*len(vessel_name); c_save = ['']*len(faults);
+c2_save = [];
 main_faults = ['0']*len(meas_main)
 fault_counter = ['0']*len(meas_main)
+
 for meas in meas_main: # check every case (report, measurement) -> meas = list
     i +=1
     main_faults_in = list(); fault_counter_in = list()
+    c_save = ['']*len(faults)
     for fault_i in range(len(fault_symptom_main)):
-        c = 0 #counter
+        c = 0 #counter 
         for symptom_i in range(1, len(fault_symptom_main[fault_i])-1):
 #            print symptom_i
             if meas[symptom_i-1] == fault_symptom_main[fault_i][symptom_i] or\
@@ -85,7 +89,8 @@ for meas in meas_main: # check every case (report, measurement) -> meas = list
         if c >= lim_main:
             main_faults_in.append(fault_symptom_main[fault_i])
             fault_counter_in.append(fault_i)
-        c_save[i] = int(c) 
+        c_save[fault_i] = int(c)
+    c2_save.append(c_save)
     main_faults[i] = main_faults_in # this needs to be revisited
     fault_counter[i] = fault_counter_in # this provides right results
 # Final check to ensure if something specific is going on,
@@ -104,12 +109,13 @@ for meas in meas_main: # check every case (report, measurement) -> meas = list
 # main_faults.sort(reverse = True, key = lambda x: int(x[10]))
 
 # 2nd part - Compare Supplementary Symptoms    
-ii=-1; ac = ['']*len(vessel_name); cc_save = ['']*len(vessel_name);
+ii=-1; ac = ['']*len(vessel_name); cc2_save = [];
 main_faults2 = ['0']*len(meas_suppl)
 fault_counter2 = ['0']*len(meas_suppl) 
 for mn in range(len(meas_suppl)):
     ii+=1
     final_faults_in = list(); final_fault_counter = list()
+    cc_save = [0]*len(faults)  
     if meas_suppl[mn][2] == '1':
 #        print '{}.AC is fouled'.format(ii)
         ac[ii] = 'AC is fouled'
@@ -127,13 +133,29 @@ for mn in range(len(meas_suppl)):
         if c >= lim_suppl:
             final_faults_in.append(faults[iii])
             final_fault_counter.append(iii)
-        cc_save[ii] = c
+        cc_save[iii] = c
+    cc2_save.append(cc_save)
     #print ii, vessel_name[ii], date[ii], final_faults_in        
     main_faults2[ii] = final_faults_in
     fault_counter2[ii] = final_fault_counter # this is right as well
 cc_save = [(0 if x is "" else x) for x in cc_save]
-c_all = [sum(x) for x in zip(cc_save, c_save)]
 
+c_all3 = list(np.array(c2_save)+np.array(cc2_save))
+c_all3 = [list(x) for x in c_all3]
+
+# Those do not work for adittion of list of lists
+#c_all = [sum(x) for x in zip(cc2_save, c2_save)]
+#from operator import add
+#c_all2 = map(add, c2_save, cc2_save)
+
+
+#
+#for n, f in enumerate(fault_counter2):
+#    for i in f:
+#        if  meas_main[n][critical_indeces[i]-1] == fault_symptom[i][critical_indeces[i]]:
+#            print n, faults[i], c_all[n]
+        
+  
 ###############################################################################
 #-------------------------WRITE RESULTS TO FILES------------------------------#
 ###############################################################################    
