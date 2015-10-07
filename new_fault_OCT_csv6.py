@@ -8,16 +8,14 @@ Created on Thu Oct 01 11:33:04 2015
 #------------------------FUNCTIONS USED---------------------------------------#
 ###############################################################################
 #import numpy as np
-yes hello yes hello 
-my name is Mary 
 import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import create_table
 
 #cases = [1] # exclude zeros
-lim_main  = 7
-lim_suppl = 1 
-filename1 = 'main_faults_all.csv'
+lim_main  = 5
+lim_suppl = 2 
+filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
 
@@ -42,7 +40,7 @@ parameters_main = fulltable[0][1:9]
 parameters_suppl = fulltable[0][10:]
 # Store the engine's possible faults in a list
 faults = [fulltable[i][0] for i in range(1, row_count)]
-
+possibilities = [fulltable[i][9] for i in range(1, row_count)]
 #read and store the MEASUREMENTS csv
 try: cases
 except NameError: cases = None
@@ -236,7 +234,7 @@ for v in range(len(vessel_f)):
 s=0
 from os import path
 filename = 'Results_for_main-{}_suppl-{}'.format(lim_main, lim_suppl)
-folderpath = path.relpath('G:/Documents/Projectakia/Fault diagnosis/Python project/Results CSVs/'+filename+'.csv')
+folderpath = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Results/'+filename+'.csv')
 
 with open(folderpath,'w') as f:
     f.write('These are the results for lim_main =%d & lim_suppl = %d \n' % (lim_main, lim_suppl))    
@@ -319,7 +317,7 @@ for i in range(len(vessel_nn)):
 #plt.show()
 
 filename2 = ('Faults_for_{}_{}.pdf'.format(lim_main, lim_suppl))
-folderpath2 = path.relpath('G:/Documents/Projectakia/Fault diagnosis/Python project/Figures/'+filename2)
+folderpath2 = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Figures/'+filename2)
 plt.savefig(folderpath2, format = 'pdf')
 plt.close() # so as not to consume memory
 #dates = mdates.strpdate2num(vessel_date[0], %Y-%m-%d)
