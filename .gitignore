@@ -1,3 +1,2 @@
-.csv
-.pyc
-lourandos - Copy.py
+*.csv
+*.pyc
