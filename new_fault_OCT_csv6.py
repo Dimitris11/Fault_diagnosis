@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 from lourandos import create_table
 
 #cases = [1,2,3,4,5] # exclude zeros
-lim_main  = 4
-lim_suppl = 3 
+lim_main  = 7
+lim_suppl = 1 
 filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
@@ -187,12 +187,12 @@ for n, f in enumerate(fault_counter2):
 #        f.write('\n')
 #    f.close()
 
-with open('final_data.csv', 'w') as f:
-    for n, ss in enumerate(fault_counter2):
-        for i in ss:
-            val = str(n)+';'+faults[i]+';'+str(c_all3[n][i])+';'+ ok_idx[n][i]+';'+possibilities[i]+'\n'
-            f.write(val)
-    f.close()
+#with open('final_data.csv', 'w') as f:
+#    for n, ss in enumerate(fault_counter2):
+#        for i in ss:
+#            val = str(n)+';'+faults[i]+';'+str(c_all3[n][i])+';'+ ok_idx[n][i]+';'+possibilities[i]+'\n'
+#            f.write(val)
+#    f.close()
 
 ###############################################################################
 #-------------------------POST-PROCESSING OF DATA-----------------------------#
@@ -350,7 +350,7 @@ def bar_subplot2(i, vnam_i, xlim, ylim):
     v_i.bar(range(len(fault_symptom)), [float(x)/len(vessel[i])*100 for x in fault_occurence_per_vessel[i]], align = 'center')
     v_i.set_ylim([0,ylim])
     v_i.set_xlim([0,xlim])
-    v_i.set_xticks(range(11))
+    v_i.set_xticks(range(len(fault_symptom)+1))
     v_i.set_title(vnam_i)
     v_i.yaxis.grid(True)
 
@@ -359,7 +359,7 @@ fig = plt.figure(figsize = (17,11))
 fig.suptitle(('Plot for lim_main =%d & lim_suppl = %d' % (lim_main, lim_suppl)), fontsize =18)
 for i in range(len(vessel_nn)):
     vnam_i = vessel_nn[i][0]
-    bar_subplot2(i, vnam_i, 10, 100)
+    bar_subplot2(i, vnam_i, len(faults), 100)
     
 #plt.show()
 
