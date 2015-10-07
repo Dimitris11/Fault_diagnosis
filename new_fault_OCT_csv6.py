@@ -8,6 +8,8 @@ Created on Thu Oct 01 11:33:04 2015
 #------------------------FUNCTIONS USED---------------------------------------#
 ###############################################################################
 #import numpy as np
+yes hello yes hello 
+my name is Mary 
 import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import create_table
