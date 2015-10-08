@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import create_table
 
-#cases = [1,2,3,4,5] # exclude zeros
-lim_main  = 7
-lim_suppl = 1 
+#cases = range(114, 120) #[1,2,3,4,5] # exclude zeros
+lim_main  = 4
+lim_suppl = 2 
 filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
@@ -91,6 +91,7 @@ for meas in meas_main: # check every case (report, measurement) -> meas = list
             fault_counter_in.append(fault_i)
         c_save[fault_i] = int(c)
     c2_save.append(c_save)
+    print c_save
     main_faults[i] = main_faults_in # this needs to be revisited
     fault_counter[i] = fault_counter_in # this provides right results
 # Final check to ensure if something specific is going on,
@@ -126,15 +127,15 @@ for mn in range(len(meas_suppl)):
         c = 0 #counter
         for i in range (len(meas_suppl[0])):
             #print 'k =', k
-            if fault_symptom_suppl[iii][i] == na or\
-            meas_suppl[mn][i] == fault_symptom_suppl[iii][i] or\
-            meas_suppl[mn][i] == na:
+            if meas_suppl[mn][i] == fault_symptom_suppl[iii][i]:
                 c +=1
         if c >= lim_suppl:
             final_faults_in.append(faults[iii])
             final_fault_counter.append(iii)
         cc_save[iii] = c
     cc2_save.append(cc_save)
+    print    
+    print cc_save
     #print ii, vessel_name[ii], date[ii], final_faults_in        
     main_faults2[ii] = final_faults_in
     fault_counter2[ii] = final_fault_counter # this is right as well
@@ -280,7 +281,7 @@ for i in range(len(rr)):
 # WRITE TO FILE WITH FAULTS AS 0's AND 1's 
 s=0
 from os import path
-filename = 'Results_for_main-{}_suppl-{}'.format(lim_main, lim_suppl)
+filename = 'Results_for_main-{}_suppl-{}_Theodora'.format(lim_main, lim_suppl)
 folderpath = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Results/'+filename+'.csv')
 
 with open(folderpath,'w') as f:
@@ -363,7 +364,7 @@ for i in range(len(vessel_nn)):
     
 #plt.show()
 
-filename2 = ('Faults_for_{}_{}.pdf'.format(lim_main, lim_suppl))
+filename2 = ('Faults_for_{}_{}_Theodora.pdf'.format(lim_main, lim_suppl))
 folderpath2 = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Figures/'+filename2)
 plt.savefig(folderpath2, format = 'pdf')
 plt.close() # so as not to consume memory
