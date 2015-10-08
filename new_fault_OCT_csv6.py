@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 01 11:33:04 2015
-
 @author: dimitris lourandos
 """
 ###############################################################################
@@ -14,7 +13,7 @@ from lourandos import create_table
 
 #cases = range(114, 120) #[1,2,3,4,5] # exclude zeros
 lim_main  = 4
-lim_suppl = 2 
+lim_suppl = 1 
 filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
@@ -91,7 +90,7 @@ for meas in meas_main: # check every case (report, measurement) -> meas = list
             fault_counter_in.append(fault_i)
         c_save[fault_i] = int(c)
     c2_save.append(c_save)
-    print c_save
+#   print c_save
     main_faults[i] = main_faults_in # this needs to be revisited
     fault_counter[i] = fault_counter_in # this provides right results
 # Final check to ensure if something specific is going on,
@@ -134,8 +133,8 @@ for mn in range(len(meas_suppl)):
             final_fault_counter.append(iii)
         cc_save[iii] = c
     cc2_save.append(cc_save)
-    print    
-    print cc_save
+#    print    
+#    print cc_save
     #print ii, vessel_name[ii], date[ii], final_faults_in        
     main_faults2[ii] = final_faults_in
     fault_counter2[ii] = final_fault_counter # this is right as well
