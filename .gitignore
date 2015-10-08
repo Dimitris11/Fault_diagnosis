@@ -1,3 +1,6 @@
 *.csv
 *.pyc
 *.pdf
+*.xlsx
+*.docx
+*.dat
