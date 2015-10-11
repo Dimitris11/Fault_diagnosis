@@ -6,6 +6,9 @@ Created on Thu Oct 01 11:33:04 2015
 ###############################################################################
 #------------------------FUNCTIONS USED---------------------------------------#
 ###############################################################################
+
+# a try to use numy arrays for operations to increase speed
+
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
