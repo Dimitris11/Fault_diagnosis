@@ -14,11 +14,11 @@ import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
 from lourandos import *
 
-cases = [180] # exclude zeros
+cases = range(240,245) # exclude zeros
 lim_main  = 4
 lim_suppl = 1 
 filename1 = 'main_faults_some.csv'
-filename2 = 'all_reports_input_new.csv'
+filename2 = 'all_reports_input_new_2.csv'
 na = '100' # number representing a symptom that is not available
 
 ###############################################################################
@@ -27,9 +27,9 @@ na = '100' # number representing a symptom that is not available
 
 #read and store the FAULTS csv
 row_count, fulltable = create_table(filename1)
-fault_symptom = [x[1:len(x)] for x in fulltable[1:row_count]]
-fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
-
+fault_symptom = fulltable[1:row_count]
+#fault_symptom = [x[1:len(x)] for x in fulltable[1:row_count]]
+#fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
 
 #Sort fulltable by possibility (use possibilty column, no.9)
 #fault_symptom.sort(reverse = True, key = lambda x: float(x[9]))
@@ -96,17 +96,18 @@ for i, meas in enumerate(meas_main):
         print '{}_Check Pscav measurement'.format(i)
 #        cc[i] = 'Check Pscav measurement'
     # 2. BSFC
-    if meas[6] ==-1 and all([I == '0' for n, I in enumerate(meas) if n!=6]):
+    if meas[6] =='-1' and all([I == '0' for n, I in enumerate(meas) if n!=6]):
         print '{}_Check Fuel Consumption or Power measurement'.format(i)
 #        bc[i] = 'Low BSFC - Please check Fuel Consumption or Power measurement'
-    if meas[6] == 1 and all([I == '0' for n, I in enumerate(meas) if n!=6]):
-        print 'High BSFC - Please check Power or Fuel Consumption Measurement'
+    if meas[6] == '1' and all([I == '0' for n, I in enumerate(meas) if n!=6]):
+        print '{}_High BSFC - Please check Power or Fuel Consumption Measurement'.format(i)
     # 3. TDC Correction
-    if meas[4] ==0 and meas[5] ==0 and meas_suppl[i][-1] !=0:
+    if meas[4] =='0' and meas[5] =='0' and meas_suppl[i][-1] !='0':
 #        tdc[i] = 'Check TDC correction'
-        print '{}_Check indicator diagram for TDC correction'.format(i) #i, tdc[i] 
+        print '{}_Check indicator diagram for TDC correction\
+        or Torsion Meter measurement'.format(i) #i, tdc[i] 
     # 4. TC speed
-    if meas[2] !=0 and all([I == '0' for n, I in enumerate(meas) if n!=2]):
+    if meas[2] !='0' and all([I == '0' for n, I in enumerate(meas) if n!=2]):
         print "{}_Check Turbocharger Speed measurement".format(i)
 #    # 5. Torsion Meter
 #    if meas_suppl[i][20] != 0 and all([I == '0' for I in meas]):
@@ -119,22 +120,15 @@ for i, meas in enumerate(meas_main):
 #    elif meas[1] - meas_suppl[i][1] > 0.4:
 #        print 'Very large Pscav - Pexh difference - Pls check both measurements'         
 #    print
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # 7. Exhaust gas temperature (it can be an indication of many faults
+    #    even if it is present alone, without any other symptoms)
+    if meas[0] == '-1' and all([I == '0' for I in meas]):
+        print '{}_Check for faulty exhaust receiver temperature sensor'.format(i)
+    elif meas[0] == '1' and all([I == '0' for I in meas]):
+        print '{}_High exhaust gas temperature, check for:\
+                i. Faulty exhaust receiver temperature sensor\
+                ii. Inadequate fuel oil cleaning\
+                iii. Altered combustion characteristics of fuel'.format(i)
 
 ###############################################################################
 #-------------------------MAIN BODY OF THE PROGRAM----------------------------#
