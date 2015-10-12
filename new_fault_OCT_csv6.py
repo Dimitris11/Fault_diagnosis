@@ -14,7 +14,7 @@ from lourandos import create_table
 #cases = range(114, 120) #[1,2,3,4,5] # exclude zeros
 lim_main  = 4
 lim_suppl = 1 
-filename1 = 'main_faults_some.csv'
+filename1 = 'main_faults_all.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
 
