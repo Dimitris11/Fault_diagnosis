@@ -17,19 +17,19 @@ from lourandos import *
 cases = range(240,245) # exclude zeros
 lim_main  = 4
 lim_suppl = 1 
-filename1 = 'main_faults_some.csv'
-filename2 = 'all_reports_input_new_2.csv'
+filename1 = 'main_faults_all.csv'
+filename2 = 'all_reports_input_test.csv'
 na = '100' # number representing a symptom that is not available
 
 ###############################################################################
 #-----------------------GETTING INITIAL DATA FROM FILES-----------------------#
 ###############################################################################
 
-#read and store the FAULTS csv
+#read and store the FAULTS csv as numpy array
 row_count, fulltable = create_table(filename1)
 fault_symptom = fulltable[1:row_count]
-#fault_symptom = [x[1:len(x)] for x in fulltable[1:row_count]]
-#fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
+fault_symptom = [x[1:len(x)] for x in fulltable[1:row_count]]
+fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
 
 #Sort fulltable by possibility (use possibilty column, no.9)
 #fault_symptom.sort(reverse = True, key = lambda x: float(x[9]))
