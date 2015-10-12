@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from lourandos import create_table
 
 #cases = range(114, 120) #[1,2,3,4,5] # exclude zeros
-lim_main  = 4
-lim_suppl = 1 
+lim_main  = 6
+lim_suppl = 1
 filename1 = 'main_faults_some.csv'
 filename2 = 'all_reports_input_new.csv'
 na = '100' # number representing a symptom that is not available
@@ -280,7 +280,7 @@ for i in range(len(rr)):
 # WRITE TO FILE WITH FAULTS AS 0's AND 1's 
 s=0
 from os import path
-filename = 'Results_for_main-{}_suppl-{}_Theodora'.format(lim_main, lim_suppl)
+filename = 'Results_for_main-{}_suppl-{}'.format(lim_main, lim_suppl)
 folderpath = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Results/'+filename+'.csv')
 
 with open(folderpath,'w') as f:
@@ -363,9 +363,9 @@ for i in range(len(vessel_nn)):
     
 #plt.show()
 
-filename2 = ('Faults_for_{}_{}_Theodora.pdf'.format(lim_main, lim_suppl))
+filename2 = ('Faults_for_{}_{}_.png'.format(lim_main, lim_suppl))
 folderpath2 = path.relpath('G:/Documents/GitHub/Fault_diagnosis/Figures/'+filename2)
-plt.savefig(folderpath2, format = 'pdf')
+plt.savefig(folderpath2, format = 'png')
 plt.close() # so as not to consume memory
 #dates = mdates.strpdate2num(vessel_date[0], %Y-%m-%d)
 #plot_date(dates, fault2[8])
