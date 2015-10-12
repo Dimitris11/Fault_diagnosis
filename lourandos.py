@@ -17,3 +17,10 @@ def create_table(filename):
     out.close()
     #print row_count
     return row_count, fulltable
+    
+def check_meas(symptom, i):
+    if int(i) == -1:
+        print '{} is lower than expected'.format(symptom)
+    elif int(i) == 1:
+        print '{} is higher than expected'.format(symptom)       
+        

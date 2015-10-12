@@ -7,14 +7,14 @@ Created on Thu Oct 01 11:33:04 2015
 #------------------------FUNCTIONS USED---------------------------------------#
 ###############################################################################
 
-# a try to use numy arrays for operations to increase speed
+# a try to use numpy arrays for operations to increase speed
 
 import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.dates as mdates
-from lourandos import create_table
+from lourandos import *
 
-#cases = range(114, 120) #[1,2,3,4,5] # exclude zeros
+cases = [180] # exclude zeros
 lim_main  = 4
 lim_suppl = 1 
 filename1 = 'main_faults_some.csv'
@@ -27,7 +27,9 @@ na = '100' # number representing a symptom that is not available
 
 #read and store the FAULTS csv
 row_count, fulltable = create_table(filename1)
-fault_symptom = fulltable[1:row_count]
+fault_symptom = [x[1:len(x)] for x in fulltable[1:row_count]]
+fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
+
 
 #Sort fulltable by possibility (use possibilty column, no.9)
 #fault_symptom.sort(reverse = True, key = lambda x: float(x[9]))
@@ -80,18 +82,44 @@ for i in range (1, row_count2):
 # 6 = Brake Specific Fuel Consumption (BSFC)
 # 7 = Pmax - Pcomp 
 
+# Print symptoms
+for i, meas in enumerate(meas_main):
+    for j, symptom in enumerate(meas):
+        check_meas(parameters_main[j], symptom)
+    print
 
-# 1. Pscav 
-if meas[1] !='0' and meas[3] !='0' and meas[5] == '0':  
-    print '{}_Check Pscav measurement'.format(i)
-    cc[i] = 'Check Pscav measurement'
-# 2. 
-if meas[6] !=0 and all([I == '0' for n, I in enumerate(meas) if n!=6]):
-    print '{}_Check bsfc or Power measurement'.format(i)
-    bc[i] = 'Check bsfc or Power measurement'
-if meas[4] ==0 and meas[5] ==0 and meas_suppl[i][-1] !=0:
-    tdc[i] = 'Check TDC correction'
-    print i,tdc[i] 
+
+
+for i, meas in enumerate(meas_main):
+    # 1. Pscav 
+    if meas[1] !='0' and meas[3] !='0' and meas[5] == '0':  
+        print '{}_Check Pscav measurement'.format(i)
+#        cc[i] = 'Check Pscav measurement'
+    # 2. BSFC
+    if meas[6] ==-1 and all([I == '0' for n, I in enumerate(meas) if n!=6]):
+        print '{}_Check Fuel Consumption or Power measurement'.format(i)
+#        bc[i] = 'Low BSFC - Please check Fuel Consumption or Power measurement'
+    if meas[6] == 1 and all([I == '0' for n, I in enumerate(meas) if n!=6]):
+        print 'High BSFC - Please check Power or Fuel Consumption Measurement'
+    # 3. TDC Correction
+    if meas[4] ==0 and meas[5] ==0 and meas_suppl[i][-1] !=0:
+#        tdc[i] = 'Check TDC correction'
+        print '{}_Check indicator diagram for TDC correction'.format(i) #i, tdc[i] 
+    # 4. TC speed
+    if meas[2] !=0 and all([I == '0' for n, I in enumerate(meas) if n!=2]):
+        print "{}_Check Turbocharger Speed measurement".format(i)
+#    # 5. Torsion Meter
+#    if meas_suppl[i][20] != 0 and all([I == '0' for I in meas]):
+#	print 'Please check Torsion Meter reading' 
+    # 6. Pscav, Pexh - This has to be done on HC level (absolute numbers not 1's and 0's)
+#    if meas[1] - meas_suppl[i][1] < 0:
+#        print 'Exete metrisei malakies'
+#    elif meas[1] - meas_suppl[i][1] < 0.1:
+#        print 'Small Pscav - Pexh difference - Pls check both measurements' 
+#    elif meas[1] - meas_suppl[i][1] > 0.4:
+#        print 'Very large Pscav - Pexh difference - Pls check both measurements'         
+#    print
+    
 
 
 
