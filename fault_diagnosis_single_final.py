@@ -10,7 +10,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 
 #cases = range(240,245) # exclude zeros
-limit  = 4
+limit  = 40.
 filename1 = 'main_faults_all.csv'
 filename2 = 'Philippe_01_2007.csv'
 
@@ -30,29 +30,45 @@ execfile('sensors.py')
 #-------------------------MAIN BODY OF THE PROGRAM----------------------------#
 ###############################################################################
 
-# 1st part - Compare Main Symptoms
-i=-1; bc = ['']*len(vessel_name); cc = ['']*len(vessel_name);
-tdc = ['']*len(vessel_name); c_save = ['']*len(faults);
-c2_save = [];
-main_faults = ['0']*len(meas_main)
-fault_counter = ['0']*len(meas_main)
+# Create the array for comparison from the HC_data
+fs_rows = int(np.shape(fault_symptom)[0])
+fs_cols = int(np.shape(fault_symptom)[1])
 
-for meas in meas_main: # check every case (report, measurement) -> meas = list
-    i +=1
-    main_faults_in = list(); fault_counter_in = list()
-    c_save = ['']*len(faults)
-    for fault_i in range(len(fault_symptom_main)):
-        c = 0 #counter 
-        for symptom_i in range(1, len(fault_symptom_main[fault_i])-1):
-#            print symptom_i
-            if meas[symptom_i-1] == fault_symptom_main[fault_i][symptom_i] or\
-            meas[symptom_i-1] == na:
-                c += 1
-        if c >= lim_main:
-            main_faults_in.append(fault_symptom_main[fault_i])
-            fault_counter_in.append(fault_i)
-        c_save[fault_i] = int(c)
-    c2_save.append(c_save)
-#   print c_save
-    main_faults[i] = main_faults_in # this needs to be revisited
-    fault_counter[i] = fault_counter_in # this provides right results
+measurement = np.ones(fs_cols)
+measurement[0]  = HC_data[23, 4] # 01. Texh
+measurement[1]  = HC_data[19, 4] # 02. Pscav
+measurement[2]  = HC_data[18, 4] # 03. TC speed
+measurement[3]  = HC_data[50, 4] # 04. Pcomp/Pscav
+measurement[4]  = HC_data[17, 4] # 05. Pmax
+measurement[5]  = HC_data[16, 4] # 06. Pcomp
+measurement[6]  = HC_data[14, 4] # 07. Indicated Power
+measurement[7]  = HC_data[25, 4] # 08. Pmax-Pcomp
+measurement[8]  = HC_data[22, 4] # 09. Pexh
+measurement[9]  = HC_data[20, 4] # 10. Tscav
+measurement[10] = HC_data[15, 4] # 11. Shaft Power
+measurement[11] = HC_data[51, 4] # 12. TC speed/ Pscav
+
+# Check if the symptoms in measurement are above the limit for all
+# the available faults in the fault-symptom matrix
+
+for i in range(fs_rows):
+    c = 0. # counter
+    n100 = fs_cols # initial number of columns
+    for j in range(fs_cols):
+        if measurement[j] == fault_symptom[i,j]:
+            c += 1 # if the symptom is detected the counter increases
+        if fault_symptom[i,j] == 100:
+            n100 -= 1 # if a symptom is not mapped then the denominator decreases
+    ratio = c/n100 *100
+    if ratio >= 40:
+        print faults[i]
+#    if c >= limit:
+#        print faults[i]        
+        
+
+
+
+
+
+
+

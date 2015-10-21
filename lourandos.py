@@ -22,5 +22,7 @@ def check_meas(symptom, i):
     if int(i) == -1:
         print '{} is lower than expected'.format(symptom)
     elif int(i) == 1:
-        print '{} is higher than expected'.format(symptom)       
+        print '{} is higher than expected'.format(symptom)
+    elif int(i) == 100:
+        pass
         
