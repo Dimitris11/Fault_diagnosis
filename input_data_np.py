@@ -45,7 +45,7 @@ HC_data = fulltable2[1:row_count2]
 HC_data = [x[1:len(x)] for x in HC_data]
 HC_data = np.array(HC_data, dtype='str')
 HC_data[HC_data =='']='0' # convert emtpy strings to zeros
-HC_data= HC_data.astype('float')
+HC_data = HC_data.astype('float')
 
 ## Add last rows in HC_data
 

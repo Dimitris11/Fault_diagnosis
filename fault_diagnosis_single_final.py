@@ -10,7 +10,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 
 #cases = range(240,245) # exclude zeros
-limit     = 45. # Percentage ( % )
+limit     = 30. # Percentage ( % )
 dominant  = 20. # Percentage ( % ) 
 filename1 = 'Fault_Symptom_matrix.csv'
 filename2 = 'Philippe_01_2007.csv'
@@ -24,7 +24,7 @@ execfile('input_data_np.py')
 ###############################################################################
 #-----------CHECK FOR ERRONEOUS MEASUREMENTS or FAULTY SENSORS----------------#
 ###############################################################################
-
+print 'Section 1 - Sensor Faults:'
 execfile('sensors_faults.py')
 
 ###############################################################################
@@ -52,6 +52,8 @@ measurement[11] = HC_data[51, 4] # 12. TC speed/ Pscav
 
 # Check if the symptoms in measurement are above the limit for all
 # the available faults in the fault-symptom matrix
+print 
+print 'Section 2 - Main Algorithm:'
 print
 for i in range(fs_rows):
     c = 0. # counter
@@ -70,7 +72,9 @@ for i in range(fs_rows):
 #    print c/n100*100, ratio
     if ratio >= limit:
         print faults[i]+ ' {:.2f}%'.format(ratio)
-
+print
+print 'Section 3 - Components:'
+print
 execfile('Components.py')
 
 
