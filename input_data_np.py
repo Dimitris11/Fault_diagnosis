@@ -13,7 +13,7 @@ from lourandos import create_table
 
 #read and store the FAULTS csv as numpy array
 row_count, fulltable = create_table(filename1)
-fault_symptom = fulltable[1:row_count]
+#fault_symptom = fulltable[1:row_count]
 fault_symptom = [x[2:len(x)] for x in fulltable[1:row_count]]
 fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
 cr = np.array( [ x[1] for x in fulltable[1:row_count] ], dtype = 'int' )
@@ -66,18 +66,22 @@ eff_TC = ( 0.9055*(HC_data[4]+273.15)*(Pc**f1 -1)/
 ((HC_data[23]+273.15) * (1- Pt**(f2)) ) )
 # Calculate the turbine efficiency
 eff_T = eff_TC/eff_C
-
 # Calculate engine Load
 load_i = HC_data[15]/const[4]
-HC_data = np.row_stack(( HC_data,Pcomp_Pscav, Tc_Pscav, Pscav_Pexh, eff_C, eff_T, eff_TC, load_i ))
-parameters_all.extend(['Pcomp_Pscav', 'Tc_Pscav', 'Pscav_Pexh', 'eff_C', 'eff_T', 'eff_TC', 'Load'])
+# Calculate Mechanical Efficiency
+eff_m = HC_data[15]/HC_data[14]
+HC_data = np.row_stack(( HC_data,Pcomp_Pscav, Tc_Pscav, Pscav_Pexh, eff_C,\
+eff_T, eff_TC, load_i, eff_m ))
+parameters_all.extend(['Pcomp_Pscav', 'Tc_Pscav', 'Pscav_Pexh', 'eff_C',\
+'eff_T', 'eff_TC', 'Load', 'Mechanical efficiency'])
 
 # Calculate differences and append to HC_data
 ex = HC_data[:,0] 
 obs = HC_data[:,1]
 diff = obs-ex
 diff_percent = diff/obs*100
-error_margin = fs = np.zeros(len(HC_data))
+error_margin = np.zeros(len(HC_data))
+fs = np.zeros(len(HC_data))
 
 error_margin[14]= 3 # Error margin for indicated Power 
 error_margin[15]= 3 # Error margin for Shaft Power
@@ -95,6 +99,7 @@ error_margin[81]= 10 # Error margin for TC speed/Pscav
 error_margin[83]= 5  # Error margin for Compressor efficiency
 error_margin[84]= 5  # Error margin for Turbine efficiency
 error_margin[85]= 5  # Error margin for Turbocharger efficiency
+error_margin[87]= 3  # Error margin for engine mechanical efficiency
 
 for i in range(len(HC_data)):   
     if np.isnan(diff_percent[i]) or diff_percent[i] == -inf:

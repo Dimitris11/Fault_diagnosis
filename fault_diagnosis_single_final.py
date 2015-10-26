@@ -7,24 +7,40 @@ Fault diagnosis for a single measurement using numpy arrays/matrices
 """
 
 import numpy as np
+from lourandos import check_meas2
 #import matplotlib.pyplot as plt
 
 #cases = range(240,245) # exclude zeros
-limit     = 30. # Percentage ( % )
-dominant  = 20. # Percentage ( % ) 
+limit     = 40. # Percentage ( % )
+dominant  = 20. # Percentage ( % )
 filename1 = 'Fault_Symptom_matrix.csv'
-filename2 = 'Philippe_01_2007.csv'
+#filename2 = 'Philippe_01_2007.csv'
+filename2 = 'CAP_THEODORA_06-2014.csv'
 
 ###############################################################################
 #-----------------------GETTING INITIAL DATA FROM FILES-----------------------#
 ###############################################################################
-
+print
 execfile('input_data_np.py')
+###############################################################################
+#---------------------------PLOTTING OF BASIC DATA----------------------------#
+###############################################################################
+
+print 'SECTION 1 - Diagrams'
+print
+execfile('diagram_check.py')
 
 ###############################################################################
 #-----------CHECK FOR ERRONEOUS MEASUREMENTS or FAULTY SENSORS----------------#
 ###############################################################################
-print 'Section 1 - Sensor Faults:'
+print 'SECTION 2 - Differences observed'
+print
+j =4 # Column with -1, 0, 1
+for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
+    check_meas2( parameters_all[i],HC_data[i,j-2], HC_data[i,j] )
+
+print
+print 'SECTION 3 - Sensor Faults:'
 execfile('sensors_faults.py')
 
 ###############################################################################
@@ -53,9 +69,11 @@ measurement[11] = HC_data[51, 4] # 12. TC speed/ Pscav
 # Check if the symptoms in measurement are above the limit for all
 # the available faults in the fault-symptom matrix
 print 
-print 'Section 2 - Main Algorithm:'
+print 'SECTION 4 - Main Algorithm:'
 print
+obs_faults = []
 for i in range(fs_rows):
+    ratio =0.
     c = 0. # counter
     n100 = fs_cols # initial number of columns
     for j in range(fs_cols):
@@ -71,13 +89,14 @@ for i in range(fs_rows):
     ratio = c/n100 *(100-dominant) + crOK
 #    print c/n100*100, ratio
     if ratio >= limit:
-        print faults[i]+ ' {:.2f}%'.format(ratio)
+        obs_faults.append([faults[i], ratio])
+#        print faults[i]+ ' {:.2f}%'.format(ratio)
+obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
+for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
 print
 print 'Section 3 - Components:'
 print
 execfile('Components.py')
-
-
 
 
 

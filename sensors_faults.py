@@ -15,13 +15,7 @@
 # 82 = Pscav - Pexh
 
 # Print symptoms
-from lourandos import check_meas
-k = 0 # Sensor Faults counter
-print
-j =4 # Column with -1, 0, 1
-for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
-    check_meas( parameters_all[i], HC_data[i,j] )
-    
+k = 0 # Sensor Faults counter   
 # Check for sensor faults/inconsistencies in measurements
 print
 print 'Now the sensor check starts:' 
@@ -31,7 +25,7 @@ if HC_data[19,j] !=0 and HC_data[16,j] ==0:
     b. Check Exhaust valve timing because of #1'
     k +=1
 # 2. BSFC
-if HC_data[12,j] !=0 and HC_data[17,j] ==0 and HC_data[23,j]==0 and \
+if HC_data[12,j] !=0 and HC_data[17,j] ==0 and HC_data[23,j] ==0 and \
 HC_data[18,j] ==0 and HC_data[14,j] ==0:
     print 'Check Fuel Consumption or Power measurement because of #2'
     k +=1
@@ -85,7 +79,60 @@ if HC_data[83,1] < 0.75:
     compressor isentropic efficiency is {:.2f} when it\
     should be > 0.75".format(HC_data[83,1])
     k +=1
-#11. Turbocharger Efficiency
+#12. Mechanical Efficiency
+eff_diff = HC_data[87,2]*100; shaft_diff = HC_data[15,4]
+if abs(eff_diff) <= 2:
+#    pr = 'Mechanical efficiency is OK'
+    p =  0;
+elif eff_diff < 5. and eff_diff > 2.:
+    pr = 'Mechanical efficiency is HIGH'
+    p =  1; k+=1
+elif eff_diff > -5. and eff_diff < -2.:
+    pr = 'Mechanical efficiency is LOW'
+    p = -1; k+=1
+elif eff_diff < -5.:
+    pr = 'Mechanical efficiency is VERY LOW'
+    p = -2; k+=1
+elif eff_diff > 5.:
+    pr = 'Mechanical efficiency is VERY HIGH'
+    p =  2; k+=1
+else:
+    pr = 'Something went wrong with mechanical efficiency'
+
+try: print pr
+except NameError: print 
+
+  
+if p == 0:
+    if shaft_diff ==  0:
+        pr2 =  'Indicated and Shaft is OK'
+    if shaft_diff == -1:
+        pr2 =  'Indicated and Shaft is Low - check both measurements, possible fault'
+        k+=1
+    if shaft_diff ==  1:
+        pr2 =  'Indicated and Shaft are high - possible hull fouling'
+        k+=1
+elif p == 1:
+    if shaft_diff ==  0:
+        pr2 =  'Indicated Power is low - Check Measurement'
+    if shaft_diff ==  1:
+        pr2 =  'Indicated Power is OK, check Torsion Meter'    
+elif p == -1:
+    if shaft_diff == 1:
+        pr2 =  'Indicated is OK and Shaft is Low - check Torsion Meter'
+    if shaft_diff == 0:
+        pr2 =  'Indicated is high and Shaft is OK - check Indicated'
+elif p == 2:
+    if shaft_diff ==  1:
+        pr2 =  'Indicated is low and Shaft Power is high - check both'  
+elif p == -2:
+    if shaft_diff ==  1:
+        pr2 =  'Indicated is high and Shaft Power is low - check both'
+        
+try: print pr2+' because of #11'
+except NameError: print "No Fault"
+    
+#12. Turbocharger Efficiency
 
     
 #    if meas[1] - meas_suppl[i][1] < 0.1 or meas[1] - meas_suppl[i][1] > 0.3:
@@ -98,5 +145,5 @@ if HC_data[83,1] < 0.75:
     
 #print k
 if k == 0:
-    print 'No sensor faults detected'    
+    print 'NO SENSOR FAULTS DETECTED'    
     
