@@ -7,15 +7,15 @@ Fault diagnosis for a single measurement using numpy arrays/matrices
 """
 
 import numpy as np
-from lourandos import check_meas2
+from lourandos import check_meas2, check_meas_OK
 #import matplotlib.pyplot as plt
 
 #cases = range(240,245) # exclude zeros
-limit     = 40. # Percentage ( % )
+limit     = 50. # Percentage ( % )
 dominant  = 20. # Percentage ( % )
 filename1 = 'Fault_Symptom_matrix.csv'
-#filename2 = 'Philippe_01_2007.csv'
-filename2 = 'CAP_THEODORA_06-2014.csv'
+filename2 = 'Philippe_01_2007.csv'
+#filename2 = 'CAP_THEODORA_06-2014.csv'
 
 ###############################################################################
 #-----------------------GETTING INITIAL DATA FROM FILES-----------------------#
@@ -37,7 +37,7 @@ print 'SECTION 2 - Differences observed'
 print
 j =4 # Column with -1, 0, 1
 for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
-    check_meas2( parameters_all[i],HC_data[i,j-2], HC_data[i,j] )
+    check_meas2( parameters_all[i],HC_data[i,j-2], HC_data[i,j], units[i] )
 
 print
 print 'SECTION 3 - Sensor Faults:'
@@ -94,9 +94,15 @@ for i in range(fs_rows):
 obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
 for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
 print
-print 'Section 3 - Components:'
+print 'SECTION 5 - Components:'
 print
 execfile('Components.py')
 
+print 'APPENDIX'
+print
+j=4
+for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
+    check_meas_OK( parameters_all[i],HC_data[i,j-2], HC_data[i,j], units[i] )
 
 
+#plt.close('all')

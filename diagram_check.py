@@ -40,13 +40,14 @@ power = a*HC_data[1,0]**b
 torque_index = HC_data[15,1]/power
 
 
-figure(1)
+plt.figure(1)
 plt.plot(rpm, power1, color = 'b', label = 'Shop Test')
 plt.plot(rpm, power2, color = 'orange', label = 'Sea Trials')
 plt.plot(rpm, power3, color = 'g', label = 'Light Curve -75%')
 plt.plot([rpm_MCR, rpm_MCR], [0.65*a*rpm_MCR**b, 1.1*a*rpm_MCR**b], 'k--')
-plt.plot(HC_data[1,1], HC_data[15,0], 'rx', label = 'Expected', markersize =6, mew = 3)
-plt.plot(HC_data[1,1], HC_data[15,1], 'ro', label = 'Operating Point')
+plt.plot(HC_data[1,1], HC_data[15,0], 'cx', label = 'Expected', markersize =6, mew = 3)
+plt.plot(HC_data[1,1], HC_data[15,1], 'ro', label = 'Pressure Trace')
+plt.plot(HC_data[1,1], HC_data[54,1], 'm+', label = 'Torsion meter', markersize =6, mew = 3)
 plt.title('Load Diagram', fontsize = 17)
 plt.xlabel('Engine Speed (rpm)')
 plt.ylabel('Shaft Power (kW)')
@@ -71,7 +72,7 @@ if HC_data[14,1]*0.8 > power_min:
 power_sea = np.linspace(power_min, power_max, 3)
 fpi = a*power_sea + b
 
-figure(2)
+plt.figure(2)
 #plt.plot(power_ind_sea_sim, FPI_sea)
 plt.plot(power_sea, fpi, 'b--', linewidth = 2, label = 'Sea Trials')
 plt.plot(HC_data[14,1], HC_data[8,1], 'ro', label = 'Operating point')

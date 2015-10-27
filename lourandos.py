@@ -27,12 +27,14 @@ def check_meas(symptom, i):
         pass
 
 
-def check_meas2(symptom,diff, i):
+def check_meas2(symptom,diff, i, units):
     if int(i) == -1:
-        print '{} is lower than expected by {:.2f}'.format(symptom, diff)
+        print '{} is lower than expected by {:.2f} {}'.format(symptom, diff, units)
     elif int(i) == 1:
-        print '{} is higher than expected by {:.2f}'.format(symptom, diff)
-    elif int(i) == 0 :
-        print '{} is OK - difference {:.2f}'.format(symptom, diff)
+        print '{} is higher than expected by {:.2f} {}'.format(symptom, diff, units)
     elif int(i) == 100:
         pass     
+
+def check_meas_OK(symptom,diff, i, units):    
+    if int(i) == 0:
+        print '{} is OK - difference {:.2f} {}'.format(symptom, diff, units)

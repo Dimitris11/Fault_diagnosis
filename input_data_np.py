@@ -101,6 +101,8 @@ error_margin[84]= 5  # Error margin for Turbine efficiency
 error_margin[85]= 5  # Error margin for Turbocharger efficiency
 error_margin[87]= 3  # Error margin for engine mechanical efficiency
 
+
+units = []
 for i in range(len(HC_data)):   
     if np.isnan(diff_percent[i]) or diff_percent[i] == -inf:
         fs[i] = 100.
@@ -111,6 +113,9 @@ for i in range(len(HC_data)):
             fs[i] = -1.
         else:
             fs[i] = 0.
+    s = parameters_all[i]
+    if '[' in s: units.append(s[s.find("[")+1:s.find("]")])
+    else: units.append(' ')   
             
 # Create the final numpy array (matrix), 52 rows (parameters) x 5 cols 
 HC_data = np.column_stack(( HC_data, diff, diff_percent, fs ))

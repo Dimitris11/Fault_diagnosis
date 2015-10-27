@@ -32,8 +32,7 @@ HC_data[18,j] ==0 and HC_data[14,j] ==0:
 # 3. TDC Correction
 if HC_data[17,j] ==0 and HC_data[16,j] ==0 and HC_data[14,j] !=0:
     print 'a.Check pressure diagram measurement\
-    b. Sensor reading\
-    c. TDC correction procedure because of #3'
+    b. TDC correction procedure because of #3'
     k +=1
 # 4. TC speed
 if HC_data[18,j] !=0 and HC_data[23,j] ==0 and HC_data[19,j] ==0 and \
@@ -65,10 +64,17 @@ if HC_data[19,j] ==-1 and HC_data[18,j] == 1:
 if HC_data[19,j] == 1 and HC_data[18,j] ==-1:
     print 'Check scavenge pressure because of #8'
     k +=1   
-#9. Pscav - Pexh        
+#9. Pscav - Pexh  
+pscav_pexh_shop = [0.07, 0.15, 0.20, 0.29, 0.28, 0.24]
+f = scipy.interpolate.interp1d( rpm_shop, pscav_pexh_shop )
+pscav_pexh = f(HC_data[1,1])      
 if HC_data[82,1] < 0.1 or HC_data[82,1] > 0.3:
-    print "Check scavenge pressure or exhaust gas pressure because of #9"
+    print "Check scavenge pressure or exhaust gas pressure because of #9a"
     k +=1
+elif HC_data[82,1] > pscav_pexh +0.1:
+    print "Check scavenge pressure or exhaust gas pressure because of #9b"
+elif HC_data[82,1] < pscav_pexh -0.1:
+    print "Check scavenge pressure or exhaust gas pressure because of #9b"
 #10. Compressor Efficiency
 if HC_data[83,1] > 0.9:
     print "Check for high Pscav or low TC speed measurements because\
