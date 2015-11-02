@@ -57,6 +57,8 @@ if eff_AC < 0.88:
     print ''
 elif eff_AC >= 0.98:
     print 'b.Air Cooler Effectiveness is high, check Air Cooler Delivery Temperature'
+else:
+    print 'b.Air Cooler Effectiveness is OK'
 
 # Step 3 - Calculate DTww and correlate with data from shop-sea
 rpm_trials = np.array([57.4, 72.3, 82.6, 87.9	, 91, 93.9, 85.9,	85.9, 90.9,\
@@ -68,8 +70,11 @@ a = coeffs2[0]; b = coeffs2[1]; c = coeffs2[2]
 DTww_exp = a*HC_data[1,1]**2 + b*HC_data[1,1] + c
 DTww_obs = HC_data[50,1] - HC_data[5,1]
 
+
 if DTww_obs - DTww_exp > 3.:
     print 'c.Air Cooler water temperature difference is high, possible AC fouling at water side'
+else:
+    print 'c.Air Cooler water temperature difference is OK'
 #Air Cooler fouled at water side
 plt.figure(4)
 plt.plot(rpm,(a*rpm**2 + b*rpm + c), 'b-', label = 'Water Temp. difference at AC from Shop-Sea')
@@ -85,6 +90,8 @@ print
 
 ### 3. Turbocharger
 print '3. Turbocharger'
+
+
 print 'Observed Compressor efficiency is: %.2f'%   (HC_data[83,1]*100)
 if HC_data[83,2] < 3.:
     print 'Compressor is OK'
@@ -93,7 +100,7 @@ print 'Observed Turbine efficiency is: %.2f'%      (HC_data[84,1]*100)
 #print 'Expected Turbine efficiency is: ',      HC_data[84,0]
 #print 'Expected Turbine efficiency (HC) is: ', HC_data[44,0]
 
-# Compare Turbine Efficiency calculated with the one from HC
+# Compare Turbine Efficiency difference observed vs expected
 turb_diff = (HC_data[84,1] - HC_data[84,0])*100
 # error_margin[84]
 if HC_data[84,2]*100 > 3:

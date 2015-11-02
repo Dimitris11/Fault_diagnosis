@@ -93,7 +93,10 @@ for i in range(fs_rows):
 #        print faults[i]+ ' {:.2f}%'.format(ratio)
 obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
 for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
+if obs_faults ==[]: print 'No faults detected from main algorithm'
 print
+
+
 print 'SECTION 5 - Components:'
 print
 execfile('Components.py')
