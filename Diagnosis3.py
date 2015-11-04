@@ -221,8 +221,8 @@ plt.ylabel('Shaft Power (kW)')
 plt.grid(True)
 plt.legend(loc = 2)
 plt.show()
-#plt.savefig('Load Diagram.png', dpi = 400)
-#plt.savefig('Load Diagram.pdf')
+plt.savefig('Load Diagram.png', dpi = 400)
+plt.savefig('Load Diagram.pdf')
 
 print
 print 'Observed - Indicator diagram:' 
@@ -300,7 +300,7 @@ plt.ylabel('Fuel Pump Index (-)')
 plt.grid(True)
 plt.legend(loc = 2)
 plt.show()
-#plt.savefig('FPI_vs_Indicated.pdf')
+plt.savefig('FPI_vs_Indicated.pdf')
 
 if power_diff < 1 and power_diff > -1:
     print 'There is good correlation between FPI and indicated power'
@@ -308,6 +308,21 @@ else:
     print 'FPI is not well correlated with indicated power - possible FPI offset or error in measurements'
 
 print
+# 3rd - Mechanical Efficiency (no good correlation with speed)
+
+
+##def log_func(x, a):
+##    return a*np.log(x)
+##def sqrt_func(x, a):
+##    return a*np.sqrt(x)
+##A, cc = scipy.optimize.curve_fit(sqrt_func, rpm_shop, eff_mech_shop)
+#co = np.polyfit(rpm_shop, eff_mech_shop, 2)
+#a= co[0]; b = co[1]; c = co[2]
+#eff_m_fit = a*rpm**2 + b*rpm + c
+#
+#figure(3)
+#plt.plot(rpm, eff_m_fit, 'b-')
+#plt.plot(HC_data[1,1], HC_data[87,0], 'ro')
 
 
 ###############################################################################
@@ -344,105 +359,103 @@ k = 0 # Sensor Faults counter
 print
 print 'Now the sensor check starts:' 
 
-sensor_warnings = list()
-
+sensor_warning = list()
 # 1. Pscav 
 if HC_data[19,j] !=0 and HC_data[16,j] ==0:
-    print 'a. Check Scavenge Pressure measurement\
+    ss = 'a. Check Scavenge Pressure measurement\
     b. Check Exhaust valve timing because of #1'
-    k +=1
-    sensor_warnings.append()
+    k +=1; sensor_warning.append(ss)
     
 # 2. BSFC
 if HC_data[12,j] !=0 and HC_data[17,j] ==0 and HC_data[23,j] ==0 and \
 HC_data[18,j] ==0 and HC_data[14,j] ==0:
-    print 'Check Fuel Consumption or Power measurement because of #2'
-    k +=1
+    ss = 'Check Fuel Consumption or Power measurement because of #2'
+    k +=1; sensor_warning.append(ss)
     
 # 3. TDC Correction
 if HC_data[17,j] ==0 and HC_data[16,j] ==0 and HC_data[14,j] !=0:
-    print 'a.Check pressure diagram measurement\
+    ss = 'a.Check pressure diagram measurement\
     b. TDC correction procedure because of #3'
-    k +=1
+    k +=1; sensor_warning.append(ss)
     
 # 4. TC speed
 if HC_data[18,j] !=0 and HC_data[23,j] ==0 and HC_data[19,j] ==0 and \
 HC_data[17,j] ==0 and HC_data[14,j] ==0:
-    print "Check Turbocharger Speed measurement because of #4"
-    k +=1
+    ss = "Check Turbocharger Speed measurement because of #4"
+    k +=1; sensor_warning.append(ss)
     
 # 5. Torsion Meter
 if HC_data[15,j] !=0 and HC_data[23,j] ==0 and HC_data[19,j] ==0 and \
 HC_data[17,j] ==0 and HC_data[16,j] ==0 and HC_data[14,j] ==0:
-    print 'Please check Torsion Meter reading because of #5'
-    k +=1
+    ss = 'Please check Torsion Meter reading because of #5'
+    k +=1; sensor_warning.append(ss)
     
 # 6. Exhaust Gas Temperature     
 if HC_data[23,j] !=0 and HC_data[17,j] ==0 and HC_data[18,j] ==0 and \
 HC_data[14,j] ==0:
-    print 'Check for faulty exhaust receiver temperature\
+    ss = 'Check for faulty exhaust receiver temperature\
     sensor because of #6'
-    k +=1
+    k +=1; sensor_warning.append(ss)
     
 #7. Texhaust & TC speed
 if HC_data[23,j] ==1 and HC_data[18,j] ==-1:
-    print 'Check for faulty exhaust receiver temperature sensor\
+    ss = 'Check for faulty exhaust receiver temperature sensor\
     and turbocharger speed measurement because if #7'
-    k +=1
+    k +=1; sensor_warning.append(ss)
 if HC_data[23,j] ==-1 and HC_data[18,j] ==1:
-    print 'Check for faulty exhaust receiver temperature sensor\
+    ss = 'Check for faulty exhaust receiver temperature sensor\
     and turbocharger speed measurement because if #7'
-    k +=1
+    k +=1; sensor_warning.append(ss)
     
 #8. Scavenge pressure and TC speed
 if HC_data[19,j] ==-1 and HC_data[18,j] == 1:
-    print 'Check scavenge pressure because of #8'
-    k +=1
+    ss = 'Check scavenge pressure because of #8'
+    k +=1; sensor_warning.append(ss)
 if HC_data[19,j] == 1 and HC_data[18,j] ==-1:
-    print 'Check scavenge pressure because of #8'
-    k +=1   
+    ss = 'Check scavenge pressure because of #8'
+    k +=1; sensor_warning.append(ss)   
     
 #9. Pscav - Pexh  
 
 f = scipy.interpolate.interp1d( rpm_shop, pscav_pexh_shop )
 pscav_pexh = f(HC_data[1,1])
 if HC_data[82,1] < 0.0:
-    print "Exhaust receiver pressure is higher than scavenge receiver pressure:"
-    print "Check both measurements!"
-    k +=1
+    ss = "Exhaust receiver pressure is higher than scavenge receiver pressure:"
+    ss = "Check both measurements!"
+    k +=1; sensor_warning.append(ss)
 elif HC_data[82,1] == 0.0:
-    print "Exhaust receiver pressure and scavenge receiver pressure are the same:"
-    print "Check both measurements!"
-    k +=1
+    ss = "Exhaust receiver pressure and scavenge receiver pressure are the same:"
+    ss = "Check both measurements!"
+    k +=1; sensor_warning.append(ss)
 elif HC_data[82,1] < 0.1:
-    print "Check scavenge pressure or exhaust receiver pressure because their difference is small"
-    k +=1
+    ss = "Check scavenge pressure or exhaust receiver pressure because their difference is small"
+    k +=1; sensor_warning.append(ss)
 elif HC_data[82,1] > 0.3:
-    print "Check scavenge pressure or exhaust receiver pressure because their difference is large"
-    k +=1
+    ss = "Check scavenge pressure or exhaust receiver pressure because their difference is large"
+    k +=1; sensor_warning.append(ss)
 elif HC_data[82,1] > pscav_pexh +0.1:
-    print "Check scavenge pressure or exhaust receiver pressure because of #9b"
-    k +=1
+    ss = "Check scavenge pressure or exhaust receiver pressure because of #9b"
+    k +=1; sensor_warning.append(ss)
 elif HC_data[82,1] < pscav_pexh -0.1:
-    print "Check scavenge pressure or exhaust receiver pressure because of #9b"
-    k +=1
+    ss = "Check scavenge pressure or exhaust receiver pressure because of #9b"
+    k +=1; sensor_warning.append(ss)
     
 #10. Compressor Efficiency
 if HC_data[83,1] > 0.9:
-    print "Check for high Pscav or low TC speed measurements because\
+    ss = "Check for high Pscav or low TC speed measurements because\
     compressor isentropic efficiency is {:.2f} when it\
     should be < 0.90".format(HC_data[83,1])
 if HC_data[83,1] < 0.75:
-    print "Check for low Pscav or high TC speed measurements because\
+    ss = "Check for low Pscav or high TC speed measurements because\
     compressor isentropic efficiency is {:.2f} when it\
     should be > 0.75".format(HC_data[83,1])
-    k +=1
+    k +=1; sensor_warning.append(ss)
 
 #11. Shaft (FPI) vs Shaft from Torsion meter
 if abs((HC_data[54,1] - HC_data[15,0])/HC_data[54,1] *100) < 2:
     HC_data[54,4] = 0 # Shaft power is OK
 else:
-    print 'Check Torsion meter or FPI measurement'
+    ss = 'Check Torsion meter or FPI measurement'
   
 
 #12. Mechanical Efficiency
@@ -450,22 +463,25 @@ eff_m = HC_data[54,1]/HC_data[14,1]
 if eff_m > 0.98:
     k +=1
     if HC_data[54,4] == 0:
-        print 'Check Indicated Power measurement (low), very high mechanical efficiency'
+        ss = 'Check Indicated Power measurement (low), very high mechanical efficiency'
     else: 
-        print 'Check both Torsion meter and Indicated Power measurement, efficiency > 0.98'
+        ss = 'Check both Torsion meter and Indicated Power measurement, efficiency > 0.98'
 elif eff_m < 0.85:
     k +=1
     if HC_data[54,4] == 0:
-        print 'Check Indicated Power measurement (high), very low mechanical efficiency'
+        ss = 'Check Indicated Power measurement (high), very low mechanical efficiency'
     else:
-        print 'Check both Torsion meter and Indicated Power measurement, efficiency < 0.85'
-
+        ss = 'Check both Torsion meter and Indicated Power measurement, efficiency < 0.85'
+sensor_warning.append(ss)
     
 #12. Turbocharger Efficiency
 
 #print k
 if k == 0:
-    print 'NO SENSOR FAULTS DETECTED'    
+    print 'NO SENSOR FAULTS DETECTED'
+else:
+    for sw in sensor_warning:
+        print sw
 	
 
 ###############################################################################
@@ -520,7 +536,6 @@ for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
 if obs_faults ==[]: print 'No faults detected from main algorithm'
 print
 
-
 print 'SECTION 5 - Components:'
 print	
 
@@ -552,7 +567,7 @@ plt.ylabel('Air Filter Pressure drop (mbar)')
 plt.grid(True)
 plt.legend(loc = 2)
 plt.show()
-#plt.savefig('AF.pdf')
+plt.savefig('AF.pdf')
 
 ### 2. Air Cooler
 print '2. Air Cooler'
