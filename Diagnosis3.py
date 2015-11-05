@@ -7,7 +7,7 @@ Created on Thu Oct 29 15:19:04 2015
 
 import numpy as np
 from lourandos import *
-import scipy.interpolate, scipy.optimize
+import scipy.interpolate, scipy.optimize # optmize used only for the cubic approximation of the powers of load diagram
 from scipy import inf
 import matplotlib.pyplot as plt
 
@@ -328,14 +328,14 @@ print
 ###############################################################################
 #-----------CHECK FOR ERRONEOUS MEASUREMENTS or FAULTY SENSORS----------------#
 ###############################################################################
-print 'SECTION 2 - Differences observed'
-print
+#print 'SECTION 2 - Differences observed'
+#print
 j =4 # Column with -1, 0, 1
 for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
     check_meas2( parameters_all[i],HC_data[i,j-2], HC_data[i,j], units[i] )
 
 print
-print 'SECTION 3 - Sensor Faults:'
+print 'SECTION 2 - Sensor Faults:'
 
 #          MAIN PARAMETERS
 
@@ -482,8 +482,131 @@ if k == 0:
 else:
     for sw in sensor_warning:
         print sw
-	
 
+print        
+###############################################################################
+#-------------------------------COMPONENTS------------------------------------#
+###############################################################################	
+print 'SECTION 3 - Components:'
+print	
+
+### 1. AIR FILTER
+print '1. Air Filter'
+# Step 1 - Build the Correlation from Shop Test
+
+# Step 2 - Interpolate Shop Test data and find the expected pressure drop
+f = scipy.interpolate.interp1d( Pscav_shop, AF_shop )
+AF_exp = f(HC_data[19,1])
+AF_obs = HC_data[0,1]
+# Step 3 - Compare observed and expected value and display message
+AF_diff = (AF_obs - AF_exp)/AF_obs 
+if AF_diff >= 0.4:
+    print 'Air Filter is fouled and needs to be cleaned'
+elif AF_diff < -0.1:
+    print 'Air Filter pressure drop is less than normal - check measurement'
+else:
+    print 'Air Filter is OK'
+print  
+
+plt.figure(3)
+plt.plot(Pscav_shop, AF_shop, 'b-', label = 'Expected AF pr.drop')
+plt.plot(HC_data[19,1], AF_obs, 'ro', label = 'Observed AF pr. drop')
+plt.title('Air Filter', fontsize = 17)
+plt.ylim([0., AF_obs*1.5])
+plt.xlabel('Scavenge Pressure (bar)')
+plt.ylabel('Air Filter Pressure drop (mbar)')
+plt.grid(True)
+plt.legend(loc = 2)
+plt.show()
+plt.savefig('AF.pdf')
+
+### 2. Air Cooler
+print '2. Air Cooler'
+# Step 1 - Check Pressure Drop
+if HC_data[21,4] ==  1:
+    print 'a.The Air Cooler is fouled at the air side'
+elif HC_data[21,4] == 0:
+    print 'a.The Air Cooler\'s pressure drop is OK'
+elif HC_data[21,4] == -1:
+    if HC_data[18,4] == -1.0:
+        print 'a.Possible reduction of air flow rate through Air Cooler'
+    else:
+        print 'a.Check Air Cooler pressure drop measurement'
+
+# Step 2 - Calculate and check effectiveness (high on low loads, lower on higher)
+eff_AC = (HC_data[24,1]-HC_data[43,1])/(HC_data[24,1]-HC_data[5,1])
+# limit, should be < 0.85
+if eff_AC < 0.88:
+    print 'b.Air Cooler Effectiveness is lower than expected. Possible fouling of AC or error in measurements'
+elif eff_AC >= 0.98:
+    print 'b.Air Cooler Effectiveness is high, check Air Cooler Delivery Temperature'
+else:
+    print 'b.Air Cooler Effectiveness is OK'
+
+# Step 3 - Calculate DTww and correlate with data from shop/sea trials
+a = np.polyfit(rpm_trials, DTww_trials, 2)
+DTww_exp = a[0]*HC_data[1,1]**2 + a[1]*HC_data[1,1] + a[2]
+DTww_obs = HC_data[50,1] - HC_data[5,1]
+
+
+if  DTww_exp - DTww_obs > 5.:
+    print 'c.Air Cooler water temperature difference is high, possible AC fouling at water side'
+else:
+    print 'c.Air Cooler water temperature difference is OK'
+    
+#plt.figure(4, figsize=(7.5,5))
+#plt.plot(rpm,(a[0]*rpm**2 + a[1]*rpm + a[2]), 'b-', label = 'Water Temp. difference at AC from Shop-Sea')
+#plt.plot(HC_data[1,1], DTww_obs, 'ro', label = 'Observed Water Temp. difference at AC')
+#plt.title('Air Cooler Water Temperature Difference', fontsize = 17)
+##plt.ylim([0., AF_obs*1.3])
+#plt.xlabel('Engine speed (rpm)')
+#plt.ylabel('Temperature difference ($^\circ$C)')
+#plt.grid(True)
+#plt.legend(loc = 2)
+#plt.show()
+#print 
+
+### 3. Turbocharger
+print '3. Turbocharger'
+
+print 'Observed Compressor efficiency is: %.2f'%   (HC_data[83,1]*100)
+print 'Expected Compressor efficiency is: %.2f'%   (HC_data[83,0]*100)
+if abs(HC_data[83,2]*100) < 3.:
+    print 'Compressor is OK'
+elif HC_data[83,2]*100 < -3:
+    print 'Compressor efficiency is reduced'
+else:
+    print 'Check Pscav or TC speed measurement, compressor efficiency is high'
+print 'Observed Turbocharger efficiency is: %.2f'% (HC_data[85,1]*100)
+print 'Observed Turbine efficiency is: %.2f'%      (HC_data[84,1]*100)
+print 'Expected Turbine efficiency is: %.2f'%      (HC_data[84,0]*100)
+print 'Expected Turbine efficiency (HC) is: %.2f'% (HC_data[44,0]*100)
+
+# Compare Turbine Efficiency difference observed vs expected
+turb_diff = (HC_data[84,1] - HC_data[84,0])*100
+# error_margin[84]
+if HC_data[84,2]*100 > 3:
+    print 'Turbine efficiency is increased - possible error in Texh or Pexh measurement'
+    print
+elif HC_data[84,2]*100 < -3:
+    print 'Turbine efficiency is reduced'
+    print    
+    if HC_data[23, 4] == 1:
+        print 'a. Increased Texh - if no Turbine Issue is detected in the main algorithm, \
+        which uses more data then the increase in temperature and subsequent drop of T eff \
+        is not due to a Turbine fault'
+        print
+    if HC_data[22, 4] == 1:
+        print 'b. Increased Pexh - if no Turbine Issue is detected in the main algorithm, \
+        which uses more data then the increase in pressure and subsequent drop of T eff \
+        is not due to a Turbine fault'
+        print
+else:
+    print 'Turbine is OK'
+    print
+    
+# Try to validate this with engine faults - verify the results of main diagnosis!
+    
 ###############################################################################
 #-------------------------MAIN BODY OF THE PROGRAM----------------------------#
 ###############################################################################
@@ -536,132 +659,12 @@ for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
 if obs_faults ==[]: print 'No faults detected from main algorithm'
 print
 
-print 'SECTION 5 - Components:'
-print	
 
-### 1. AIR FILTER
-print '1. Air Filter'
-# Step 1 - Build the Correlation from Shop Test
-
-# Step 2 - Interpolate Shop Test data and find the expected pressure drop
-f = scipy.interpolate.interp1d( Pscav_shop, AF_shop )
-AF_exp = f(HC_data[19,1])
-AF_obs = HC_data[0,1]
-# Step 3 - Compare observed and expected value and display message
-AF_diff = (AF_obs - AF_exp)/AF_obs 
-if AF_diff >= 0.4:
-    print 'Air Filter is fouled and needs to be cleaned'
-elif AF_diff < -0.1:
-    print 'Air Filter pressure drop is less than normal - check measurement'
-else:
-    print 'Air Filter is OK'
-print  
-
-plt.figure(3)
-plt.plot(Pscav_shop, AF_shop, 'b-', label = 'Expected AF pr.drop')
-plt.plot(HC_data[19,1], AF_obs, 'ro', label = 'Observed AF pr. drop')
-plt.title('Air Filter', fontsize = 17)
-plt.ylim([0., AF_obs*1.5])
-plt.xlabel('Scavenge Pressure (bar)')
-plt.ylabel('Air Filter Pressure drop (mbar)')
-plt.grid(True)
-plt.legend(loc = 2)
-plt.show()
-plt.savefig('AF.pdf')
-
-### 2. Air Cooler
-print '2. Air Cooler'
-# Step 1 - Check Pressure Drop
-if HC_data[21,4] ==  1:
-    print 'a.The Air Cooler is fouled at the air side'
-elif HC_data[21,4] == 0:
-    print 'a.The Air Cooler\'s pressure drop is OK'
-elif HC_data[21,4] == -1:
-    if HC_data[18,4] == -1.0:
-        print 'a.Possible reduction of air flow rate through Air Cooler'
-    else:
-        print 'a.Check Air Cooler pressure drop measurement'
-
-# Step 2 - Calculate and check effectiveness (high on low loads, lower on higher)
-eff_AC = (HC_data[24,1]-HC_data[43,1])/(HC_data[24,1]-HC_data[5,1])
-# limit, should be < 0.85
-if eff_AC < 0.88:
-    print ''
-elif eff_AC >= 0.98:
-    print 'b.Air Cooler Effectiveness is high, check Air Cooler Delivery Temperature'
-else:
-    print 'b.Air Cooler Effectiveness is OK'
-
-# Step 3 - Calculate DTww and correlate with data from shop/sea trials
-a = np.polyfit(rpm_trials, DTww_trials, 2)
-DTww_exp = a[0]*HC_data[1,1]**2 + a[1]*HC_data[1,1] + a[2]
-DTww_obs = HC_data[50,1] - HC_data[5,1]
-
-
-if DTww_obs - DTww_exp > 3.:
-    print 'c.Air Cooler water temperature difference is high, possible AC fouling at water side'
-else:
-    print 'c.Air Cooler water temperature difference is OK'
-    
-plt.figure(4, figsize=(7.5,5))
-plt.plot(rpm,(a[0]*rpm**2 + a[1]*rpm + a[2]), 'b-', label = 'Water Temp. difference at AC from Shop-Sea')
-plt.plot(HC_data[1,1], DTww_obs, 'ro', label = 'Observed Water Temp. difference at AC')
-plt.title('Air Cooler Water Temperature Difference', fontsize = 17)
-#plt.ylim([0., AF_obs*1.3])
-plt.xlabel('Engine speed (rpm)')
-plt.ylabel('Temperature difference ($^\circ$C)')
-plt.grid(True)
-plt.legend(loc = 2)
-plt.show()
-print 
-
-### 3. Turbocharger
-print '3. Turbocharger'
-
-print 'Observed Compressor efficiency is: %.2f'%   (HC_data[83,1]*100)
-print 'Expected Compressor efficiency is: %.2f'%   (HC_data[83,0]*100)
-if abs(HC_data[83,2]*100) < 3.:
-    print 'Compressor is OK'
-elif HC_data[83,2]*100 < -3:
-    print 'Compressor efficiency is reduced'
-else:
-    print 'Check Pscav or TC speed measurement, compressor efficiency is high'
-print 'Observed Turbocharger efficiency is: %.2f'% (HC_data[85,1]*100)
-print 'Observed Turbine efficiency is: %.2f'%      (HC_data[84,1]*100)
-print 'Expected Turbine efficiency is: %.2f'%      (HC_data[84,0]*100)
-print 'Expected Turbine efficiency (HC) is: %.2f'% (HC_data[44,0]*100)
-
-# Compare Turbine Efficiency difference observed vs expected
-turb_diff = (HC_data[84,1] - HC_data[84,0])*100
-# error_margin[84]
-if HC_data[84,2]*100 > 3:
-    print 'Turbine efficiency is increased - possible error in Texh or Pexh measurement'
-    print
-elif HC_data[84,2]*100 < -3:
-    print 'Turbine efficiency is reduced'
-    print    
-    if HC_data[23, 4] == 1:
-        print 'a. Increased Texh - if no Turbine Issue is detected in the main algorithm, \
-        which uses more data then the increase in temperature and subsequent drop of T eff \
-        is not due to a Turbine fault'
-        print
-    if HC_data[22, 4] == 1:
-        print 'b. Increased Pexh - if no Turbine Issue is detected in the main algorithm, \
-        which uses more data then the increase in pressure and subsequent drop of T eff \
-        is not due to a Turbine fault'
-        print
-else:
-    print 'Turbine is OK'
-    print
-    
-# Try to validate this with engine faults - verify the results of main diagnosis!
-
-
-print 'APPENDIX'
-print
-j=4
-for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
-    check_meas_OK( parameters_all[i],HC_data[i,j-2], HC_data[i,j], units[i] )
+#print 'APPENDIX'
+#print
+#j=4
+#for i in [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]:
+#    check_meas_OK( parameters_all[i],HC_data[i,j-2], HC_data[i,j], units[i] )
 
 #plt.close('all')
 
