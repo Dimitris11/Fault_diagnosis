@@ -9,7 +9,7 @@ import numpy as np
 from lourandos import *
 import scipy.interpolate, scipy.optimize # optmize used only for the cubic approximation of the powers of load diagram
 from scipy import inf
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 ff_all =[]
 vessel_name = 'CAP PHILIPPE';
@@ -22,6 +22,7 @@ filename2 = 'Philippe_01_2007.csv'
 #filename2 = 'ADP_JUN_CAP CHARLES_2014 - unprotected_Shaft.CSV'
 #filename2 = 'ADP_NOV_CAP VICTOR_2014 - UNPROTECTED.CSV' # loading = 0
 #filename2 = 'ADP_OCT_CAP GUILLAUME_2014_unprotected_celsius.CSV'
+
 ###############################################################################
 #----------------------DATA FROM SHOP/SEA FOR CORRELATIONS--------------------#
 ###############################################################################
@@ -678,9 +679,12 @@ for i in range(fs_rows):
     if ratio >= limit:
         obs_faults.append([faults[i], ratio])
 #        print faults[i]+ ' {:.2f}%'.format(ratio)
+        
 obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
-for i in obs_faults: print i[0], '{:.2f}'.format(i[1])+'%'
-if obs_faults ==[]: print 'No faults detected from main algorithm'
+for i in obs_faults: 
+    print i[0], '{:.2f}'.format(i[1])+'%'
+if obs_faults ==[]:
+    print 'No faults detected from main algorithm'
 print
 
 
