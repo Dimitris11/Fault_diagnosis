@@ -63,8 +63,18 @@ print
 ############ Import data from files and store to arrays/list ##################
 
 #read and store the FAULTS csv as numpy array
-row_count, fulltable = create_table(filename1)
+#row_count, fulltable = create_table(filename1)
 #fault_symptom = fulltable[1:row_count]
+fulltable = [['Faults', 'critical param', 'Exhaust Gas Temp', 'Scavenge Pressure', 'Turbocharger Speed', 'Pcomp/Pscav', 'Maximum Pressure', 'Compression Pressure', 'Indicated Power', 'Pmax-Pcomp', 'Pexh', 'Tscav', 'Shaft Power', 'TC speed/Pscav'],
+['Injection nozzles (or fuel valves) in poor condition, nozzle tip broken', '4', '1', '1', '1', '1', '-1', '1', '0', '-1', '1', '1', '0', '1'],
+['Start of injection too late', '4', '1', '1', '1', '0', '-1', '1', '100', '-1', '1', '0', '100', '0'],
+['Turbine Rotor blade tips damaged (rubbing)', '2', '1', '-1', '-1', '0', '-1', '-1', '100', '1', '-1', '0', '100', '-1'],
+['Exhaust valve leaking', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '100', '100', '1', '-1', '100'],
+['Blow-by in combustion chamber', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '1', '1', '1', '-1', '-1'],
+['Air Filter before Compressor fouled', '0', '1', '-1', '1', '0', '-1', '-1', '100', '0', '-1', '0', '100', '1'],
+['Fouled air or water side (AC) -Cooling water pipes or water passages chocked', '9', '1', '1', '1', '-1', '1', '1', '-1', '-1', '1', '1', '100', '-1'],
+['Start of injection too early', '4', '-1', '-1', '-1', '0', '1', '-1', '100', '1', '-1', '0', '100', '0']]
+row_count = len(fulltable)
 fault_symptom = [x[2:len(x)] for x in fulltable[1:row_count]]
 fault_symptom = np.array([ map(float,x) for x in fault_symptom ])
 # Critical parameter Indices
@@ -176,137 +186,137 @@ HC_cols = int(np.shape(HC_data)[1])
 #---------------------------PLOTTING OF BASIC DATA----------------------------#
 ###############################################################################
 
-print 'SECTION 1 - Diagrams'
-print
-
-# 1st - Load Diagram
-
-#f = scipy.interpolate.interp1d( rpm_shop, power_shop, kind='cubic' )
-
-# Define the power function of the fitting curve 
-def power_func (x, a, b):
-    return a*x**b
-
-factors, b = scipy.optimize.curve_fit(power_func, rpm_shop, power_shop, p0 = (0.02, 3.))
-a = factors[0]; b = factors[1]
-
-if HC_data[1,1]*1.1 < rpm_max:
-    rpm_max = HC_data[1,1]*1.1
-if HC_data[1,1]*0.85 > rpm_min:
-    rpm_min = HC_data[1,1]*0.85
-    
-rpm = np.linspace(rpm_min, rpm_max, 200)
-power1 = a*rpm**b       # Shop Test Curve
-power2 = 0.90*a*rpm**b  # Sea Trials Curve
-power3 = 0.75*a*rpm**b  # Light Running Curve
-power = a*HC_data[1,0]**b # expected shop curve power for the specific speed
-torque_index = HC_data[15,1]/power  # for FPI calculation
-if HC_data[54,1] < power_min: # if Torsion Power is in kNm and not in kW 
-    HC_data[54,1] = HC_data[54,1] * HC_data[1,1] *np.pi/30 # P(kW) = T(kN)*N(rpm)*pi/30
-torque_index2 = HC_data[54,1]/power # from Torsion meter
-
-# PLOTTING of Load Diagram 
-plt.figure(1, figsize=(8, 6))
-plt.plot(rpm, power1, color = 'b', label = 'Shop Test')
-plt.plot(rpm, power2, color = 'orange', label = 'Sea Trials')
-plt.plot(rpm, power3, color = 'g', label = 'Light Curve -75%')
-plt.plot([rpm_MCR, rpm_MCR], [0.65*a*rpm_MCR**b, 1.1*a*rpm_MCR**b], 'k--')
-plt.plot(HC_data[1,1], HC_data[15,0], 'cx', label = 'Expected', markersize =6, mew = 3)
-plt.plot(HC_data[1,1], HC_data[15,1], 'ro', label = 'Observed - Indicator')
-if HC_data[54, 1] != 0:
-    plt.plot(HC_data[1,1], HC_data[54,1], 'm+', label = 'Observed - Torsion meter', markersize =6, mew = 3)
-plt.xlim([0.98*rpm_min, 1.02*rpm_max])
-plt.title('Load Diagram', fontsize = 17)
-plt.xlabel('Engine Speed (rpm)')
-plt.ylabel('Shaft Power (kW)')
-plt.grid(True)
-plt.legend(loc = 2)
-plt.show()
-plt.savefig('Load Diagram.png', dpi = 400)
-plt.savefig('Load Diagram.pdf')
-
-print
-print 'Observed - Indicator diagram:' 
-if torque_index > 1.0:
-    if loading == 0:
-        print 'Power is too high possible error in measurement'
-    else:
-        print 'The engine operates in the torque rich region (overloaded)'
-elif torque_index <=1.0 and torque_index >0.9:
-    if loading == 1:
-        print 'The engine operates in normal load'
-    else:
-        print 'The engine load is high - if hull and weather conditions are OK, check measurement'
-elif torque_index <0.9 and torque_index >0.8:
-    if loading == 1:
-        print 'The engine load is low - check measurement'
-    else:
-        print 'The engine operates in normal load'
-else:
-    if loading == 1:
-        print 'The engine load is very low - check measurement' 
-    else:
-        print 'The engine load is low - check measurement'
-print
-if HC_data[54,1] != 0: 
-    print 'Observed - Torsion meter:'
-    if torque_index2 > 1.0:
-        if loading == 0:
-            print 'Power is too high possible error in measurement'
-        else:
-            print 'The engine operates in the torque rich region (overloaded)'
-    elif torque_index2 <=1.0 and torque_index2 >0.9:
-        if loading == 1:
-            print 'The engine operates in normal load'
-        else:
-            print 'The engine load is high - if hull and weather conditions are OK, check measurement'
-    elif torque_index2 <0.9 and torque_index2 >0.8:
-        if loading == 1:
-            print 'The engine load is low - check measurement'
-        else:
-            print 'The engine operates in normal load'
-    else:
-        if loading == 1:
-            print 'The engine load is very low - check measurement' 
-        else:
-            print 'The engine load is low - check measurement'
-        
-        
-# 2nd - FPI vs Pi (or Indicated Power)
-
-a = np.polyfit(power_ind_sea_sim, FPI_sea, 1)
-b = np.polyfit(FPI_sea, power_ind_sea_sim, 1)
-
-if HC_data[14,1]*1.2 < power_max:
-    power_max = HC_data[14,1]*1.2
-if HC_data[14,1]*0.75 > power_min:
-    power_min = HC_data[14,1]*0.75
-
-power_sea = np.linspace(power_min, power_max, 3)
-fpi = a[0]*power_sea + a[1]
-fpi_exp = a[0]*HC_data[14,1] + a[1]
-power_exp = b[0]*HC_data[7,1] + b[1]
-
-fpi_diff = (HC_data[7,1] - fpi_exp)/ HC_data[7,1] *100 # ( % )
-power_diff = (HC_data[14,1] -power_exp)/ HC_data[14,1] *100 # ( % )
-
-# PLOTTING of FPI vs Indicated Power 
-plt.figure(2)
-#plt.plot(power_ind_sea_sim, FPI_sea, 'g+', label = 'Sea Trial data')
-plt.plot(power_sea, fpi, 'b--', linewidth = 2, label = 'Sea Trials')
-plt.plot(HC_data[14,1], HC_data[7,1], 'ro', label = 'Operating point')
-plt.title('FPI vs Indicated Power', fontsize = 17)
-plt.xlabel('Indicated Power (kW)')
-plt.ylabel('Fuel Pump Index (-)')
-plt.grid(True)
-plt.legend(loc = 2)
-plt.show()
-plt.savefig('FPI_vs_Indicated.pdf')
-
-if power_diff < 1 and power_diff > -1:
-    print 'There is good correlation between FPI and indicated power'
-else:
-    print 'FPI is not well correlated with indicated power - possible FPI offset or error in measurements'
+#print 'SECTION 1 - Diagrams'
+#print
+#
+## 1st - Load Diagram
+#
+##f = scipy.interpolate.interp1d( rpm_shop, power_shop, kind='cubic' )
+#
+## Define the power function of the fitting curve 
+#def power_func (x, a, b):
+#    return a*x**b
+#
+#factors, b = scipy.optimize.curve_fit(power_func, rpm_shop, power_shop, p0 = (0.02, 3.))
+#a = factors[0]; b = factors[1]
+#
+#if HC_data[1,1]*1.1 < rpm_max:
+#    rpm_max = HC_data[1,1]*1.1
+#if HC_data[1,1]*0.85 > rpm_min:
+#    rpm_min = HC_data[1,1]*0.85
+#    
+#rpm = np.linspace(rpm_min, rpm_max, 200)
+#power1 = a*rpm**b       # Shop Test Curve
+#power2 = 0.90*a*rpm**b  # Sea Trials Curve
+#power3 = 0.75*a*rpm**b  # Light Running Curve
+#power = a*HC_data[1,0]**b # expected shop curve power for the specific speed
+#torque_index = HC_data[15,1]/power  # for FPI calculation
+#if HC_data[54,1] < power_min: # if Torsion Power is in kNm and not in kW 
+#    HC_data[54,1] = HC_data[54,1] * HC_data[1,1] *np.pi/30 # P(kW) = T(kN)*N(rpm)*pi/30
+#torque_index2 = HC_data[54,1]/power # from Torsion meter
+#
+## PLOTTING of Load Diagram 
+#plt.figure(1, figsize=(8, 6))
+#plt.plot(rpm, power1, color = 'b', label = 'Shop Test')
+#plt.plot(rpm, power2, color = 'orange', label = 'Sea Trials')
+#plt.plot(rpm, power3, color = 'g', label = 'Light Curve -75%')
+#plt.plot([rpm_MCR, rpm_MCR], [0.65*a*rpm_MCR**b, 1.1*a*rpm_MCR**b], 'k--')
+#plt.plot(HC_data[1,1], HC_data[15,0], 'cx', label = 'Expected', markersize =6, mew = 3)
+#plt.plot(HC_data[1,1], HC_data[15,1], 'ro', label = 'Observed - Indicator')
+#if HC_data[54, 1] != 0:
+#    plt.plot(HC_data[1,1], HC_data[54,1], 'm+', label = 'Observed - Torsion meter', markersize =6, mew = 3)
+#plt.xlim([0.98*rpm_min, 1.02*rpm_max])
+#plt.title('Load Diagram', fontsize = 17)
+#plt.xlabel('Engine Speed (rpm)')
+#plt.ylabel('Shaft Power (kW)')
+#plt.grid(True)
+#plt.legend(loc = 2)
+#plt.show()
+#plt.savefig('Load Diagram.png', dpi = 400)
+#plt.savefig('Load Diagram.pdf')
+#
+#print
+#print 'Observed - Indicator diagram:' 
+#if torque_index > 1.0:
+#    if loading == 0:
+#        print 'Power is too high possible error in measurement'
+#    else:
+#        print 'The engine operates in the torque rich region (overloaded)'
+#elif torque_index <=1.0 and torque_index >0.9:
+#    if loading == 1:
+#        print 'The engine operates in normal load'
+#    else:
+#        print 'The engine load is high - if hull and weather conditions are OK, check measurement'
+#elif torque_index <0.9 and torque_index >0.8:
+#    if loading == 1:
+#        print 'The engine load is low - check measurement'
+#    else:
+#        print 'The engine operates in normal load'
+#else:
+#    if loading == 1:
+#        print 'The engine load is very low - check measurement' 
+#    else:
+#        print 'The engine load is low - check measurement'
+#print
+#if HC_data[54,1] != 0: 
+#    print 'Observed - Torsion meter:'
+#    if torque_index2 > 1.0:
+#        if loading == 0:
+#            print 'Power is too high possible error in measurement'
+#        else:
+#            print 'The engine operates in the torque rich region (overloaded)'
+#    elif torque_index2 <=1.0 and torque_index2 >0.9:
+#        if loading == 1:
+#            print 'The engine operates in normal load'
+#        else:
+#            print 'The engine load is high - if hull and weather conditions are OK, check measurement'
+#    elif torque_index2 <0.9 and torque_index2 >0.8:
+#        if loading == 1:
+#            print 'The engine load is low - check measurement'
+#        else:
+#            print 'The engine operates in normal load'
+#    else:
+#        if loading == 1:
+#            print 'The engine load is very low - check measurement' 
+#        else:
+#            print 'The engine load is low - check measurement'
+#        
+#        
+## 2nd - FPI vs Pi (or Indicated Power)
+#
+#a = np.polyfit(power_ind_sea_sim, FPI_sea, 1)
+#b = np.polyfit(FPI_sea, power_ind_sea_sim, 1)
+#
+#if HC_data[14,1]*1.2 < power_max:
+#    power_max = HC_data[14,1]*1.2
+#if HC_data[14,1]*0.75 > power_min:
+#    power_min = HC_data[14,1]*0.75
+#
+#power_sea = np.linspace(power_min, power_max, 3)
+#fpi = a[0]*power_sea + a[1]
+#fpi_exp = a[0]*HC_data[14,1] + a[1]
+#power_exp = b[0]*HC_data[7,1] + b[1]
+#
+#fpi_diff = (HC_data[7,1] - fpi_exp)/ HC_data[7,1] *100 # ( % )
+#power_diff = (HC_data[14,1] -power_exp)/ HC_data[14,1] *100 # ( % )
+#
+## PLOTTING of FPI vs Indicated Power 
+#plt.figure(2)
+##plt.plot(power_ind_sea_sim, FPI_sea, 'g+', label = 'Sea Trial data')
+#plt.plot(power_sea, fpi, 'b--', linewidth = 2, label = 'Sea Trials')
+#plt.plot(HC_data[14,1], HC_data[7,1], 'ro', label = 'Operating point')
+#plt.title('FPI vs Indicated Power', fontsize = 17)
+#plt.xlabel('Indicated Power (kW)')
+#plt.ylabel('Fuel Pump Index (-)')
+#plt.grid(True)
+#plt.legend(loc = 2)
+#plt.show()
+#plt.savefig('FPI_vs_Indicated.pdf')
+#
+#if power_diff < 1 and power_diff > -1:
+#    print 'There is good correlation between FPI and indicated power'
+#else:
+#    print 'FPI is not well correlated with indicated power - possible FPI offset or error in measurements'
 
 print
 # 3rd - Mechanical Efficiency (no good correlation with speed)
