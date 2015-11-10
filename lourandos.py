@@ -20,12 +20,14 @@ def create_table(filename):
     
 def check_meas(symptom, i):
     if int(i) == -1:
-        print '{} is lower than expected'.format(symptom)
+        message = '{} is lower than expected'.format(symptom)
     elif int(i) == 1:
-        print '{} is higher than expected'.format(symptom)
+        message = '{} is higher than expected'.format(symptom)
     elif int(i) == 100:
+        message = 'Not measured'
+    else:
         pass
-
+    return message
 
 def check_meas2(symptom,diff, i, units):
     if int(i) == -1:
