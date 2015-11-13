@@ -8,8 +8,8 @@ Created on Thu Oct 29 15:19:04 2015
 ff_all =[]; sensor_warning = []
 #vessel_name = 'CAP PHILIPPE';
 #loading   = 0 # 1 if vessel is loaded, 0 if in ballast condition
-limit     = 20. # Percentage ( % )
-dominant  = 25. # Percentage ( % )
+limit     = 40. # Percentage ( % )
+dominant  = 20. # Percentage ( % )
 filename1 = 'Fault_Symptom_matrix_component.csv'
 filename2 = 'Philippe_01_2007_enhanced.csv'
 #filename2 = 'ADP_AUG_CAP FELIX_2014_unprotected_celsius.CSV'
@@ -127,12 +127,16 @@ faults = [fulltable[i][0] for i in range(1, row_count)]
 #    fault_symptom[i].pop(10)
 #    fault_symptom[i].pop(6)
 
+
+# Create new tables containing only the faults related with the COMPONENTS 
 fault_symptom_cyl = [fault_symptom[0]]+[fault_symptom[1]]+[fault_symptom[3]]\
 +[fault_symptom[4]]+[fault_symptom[7]]
-
 fault_symptom_TC = [fault_symptom[2]]+[fault_symptom[6]]
+fault_symptom_eng = [fault_symptom[5]]
 faults_cyl = faults[0:2]+faults[3:5]+[faults[7]]
 faults_TC = [faults[2]]+[faults[6]]
+faults_engine = [faults[5]]
+
 #read and store the MEASUREMENT csv 
 row_count2, fulltable2 = create_table(filename2)
 parameters_all = [x[0] for x in fulltable2[1:]]
@@ -202,54 +206,23 @@ for i in range(len(HC_data[0])):
     # Calculate Mechanical Efficiency
     eff_m[i] = HC_data[15][i]/HC_data[14][i]
     
-    
 HC_data.extend([Pcomp_Pscav, Tc_Pscav, Pscav_Pexh, eff_C, eff_T, eff_TC, load_i, eff_m])
 parameters_all.extend(['Pcomp_Pscav', 'Tc_Pscav', 'Pscav_Pexh', 'eff_C',\
 'eff_T', 'eff_TC', 'Load', 'Mechanical efficiency'])
 
-# Calculate differences and append to HC_data
+# Calculate differences and % differences of HC_data
 ex   = [x[0] for x in HC_data] 
 obs  = [x[1] for x in HC_data]
 diff = [ (obs[i]-ex[i]) for i in range(len(HC_data)) ]
 diff_percent = [0]*len(HC_data) # Initialize a list of zeros
 diff_percent = [ (diff[i]/obs[i]*100.) if obs[i] !=0. else None for i in range(len(HC_data)) ]
 
+###############################################################################
+#-----------------------ERROR MARGINS OF EACH PARAMETER-----------------------#
+###############################################################################
 
-# Manipulate per Component data
-components = [ x[3:] for x in HC_data1 if x[3] !='' ]
-for i, h in enumerate(components):
-    for j, h2 in enumerate(h):
-        if h2 == '':
-            components [i][j] = '0'
-components = [map(float, i) for i in components]
-
-# Make components = -1, 0, 1
-   
-
-Pcomp_Pscav_component = [x/obs[19] for x in components[0]]
-Pmax_Pcomp_component = [a - b for a, b in zip(components[1], components[0])]
-Tc_Pscav_component = [x/obs[19] for x in components[2] if x!=0]
-components.pop(3)
-components.insert(2, Pcomp_Pscav_component)
-components.insert(3, Pmax_Pcomp_component)
-components.insert(4, [obs[23]])
-components.insert(6, Tc_Pscav_component)
-components.insert(7, [obs[19]])
-components.insert(8, [obs[22]])
-components.insert(9, [obs[20]])
-
-
-
-cd = len(components)*[[]]
-cd[0] = [(x-ex[16])/x for x in components[0] if x!=0]
-cd[1] = [(x-ex[17])/x for x in components[1] if x!=0]
-cd[2] = [(x-ex[80])/x for x in components[2] if x!=0]
-cd[3] = [(x-ex[25])/x for x in components[3] if x!=0]
-cd[5] = [(x-ex[18])/x for x in components[5] if x!=0]
-cd[6] = [(x-ex[81])/x for x in components[6] if x!=0] 
-
-
-
+# Set the margins of each parameter, as in HyperCube
+ 
 error_margin = len(HC_data)*[0] # Initialize deviation for each parameter
 error_margin[14]= 3  # Error margin for Indicated Power 
 error_margin[15]= 3  # Error margin for Shaft Power
@@ -271,7 +244,48 @@ error_margin[85]= 5  # Error margin for Turbocharger efficiency
 error_margin[87]= 3  # Error margin for engine mechanical efficiency
 
 
+###############################################################################
+#--------------------------- MANAGE COMPONENT DATA ---------------------------#
+###############################################################################
 
+# Store component data from csv  in 'components' table
+components = [ x[3:] for x in HC_data1 if x[3] !='' ]
+# Convert empty strings to Zeros
+for i, h in enumerate(components):
+    for j, h2 in enumerate(h):
+        if h2 == '':
+            components [i][j] = '0'
+# Convert string 'numbers' to float numbers
+components = [map(float, i) for i in components]
+
+# Manipulate the components table (absolute values)
+Pcomp_Pscav_component = [x/obs[19] for x in components[0]]
+Pmax_Pcomp_component = [a - b for a, b in zip(components[1], components[0])]
+Tc_Pscav_component = [x/obs[19] for x in components[2] if x!=0]
+components.pop(3)
+components.insert(2, Pcomp_Pscav_component)
+components.insert(3, Pmax_Pcomp_component)
+components.insert(4, [obs[23]])
+components[5] = components[5][:2]
+components.insert(6, Tc_Pscav_component)
+components.insert(7, [obs[19]])
+components.insert(8, [obs[22]])
+components.insert(9, [obs[20]])
+
+# We do not calcultate the absolute differences of each component (skip this step)
+
+# Calculate the % differences of each component (only those that refer to components and not the whole engine)
+
+cd = len(components)*[[]] # cd - component differences (absolute)
+cd[0] = [(x-ex[16])/x for x in components[0] if x!=0]
+cd[1] = [(x-ex[17])/x for x in components[1] if x!=0]
+cd[2] = [(x-ex[80])/x for x in components[2] if x!=0]
+cd[3] = [(x-ex[25])/x for x in components[3] if x!=0]
+cd[5] = [(x-ex[18])/x for x in components[5] if x!=0]
+cd[6] = [(x-ex[81])/x for x in components[6] if x!=0] 
+
+
+# Calculate and store the values -1, 0, 1 for the average engine values - fs list
 
 fs = len(HC_data)*[0] # Initialize an array of zeros to store the -1, 0, 1 
 units = []
@@ -288,7 +302,8 @@ for i in range(len(HC_data)):
     s = parameters_all[i]
     if '[' in s: units.append(s[s.find("[")+1:s.find("]")])
     else: units.append(' ')   
-            
+
+# and continue with the calculation of -1, 0, 1 for component data            
 component_data = len(components)*[[]]
 component_data[0] = [1. if  x > error_margin[16]/100. else -1. if x < -error_margin[16]/100. else 0. for x in cd[0]]
 component_data[1] = [1. if  x > error_margin[17]/100. else -1. if x < -error_margin[17]/100. else 0. for x in cd[1]]
@@ -309,6 +324,9 @@ component_data[9] = [fs[20]]
 ###############################################################################
 #print 'SECTION 2 - Differences observed'
 #print
+
+
+# Store in list 'message' the observations according to -1 (lower), 1(higher) values 
 observ_list = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 80, 81, 83, 84, 85]
 observations = []
 for i in observ_list:
@@ -317,11 +335,12 @@ for i in observ_list:
     elif int(fs[i]) == 1:
         message = '{} is higher than expected'.format(parameters_all[i])
     elif int(fs[i]) == 100:
-        message = '{} not measured'.format(arameters_all[i])
+        message = '{} not measured'.format(parameters_all[i])
     else:
         message = '0'
     observations.append(message)
-observations = [x for x in observations if x !='0']
+observations = [x for x in observations if x !='0'] # remove zeros and keep only the real messages
+
 #print
 #print 'SECTION 2 - Sensor Faults:'
 
@@ -346,7 +365,6 @@ k = 0 # Sensor Faults counter
 # Check for sensor faults/inconsistencies in measurements
 #print
 #print 'Now the sensor check starts:' 
-
 
 # 1. Pscav 
 if fs[19] !=0 and fs[16] ==0:
@@ -612,11 +630,12 @@ measurement = fs_cols*[1] # Initialize a list of ones
 #measurement[9]  = fs[20] # 10. Tscav
 
 
-# Construct the component table which will iterate over the fault-symtom matrix
+# Construct a table for each component category which will iterate over the fault-symtom matrix
 # to find the faults for each component (cylinder, TC, etc.)
+
 n_Cylinders = 6
 n_TCs = 2
-cylinders = n_Cylinders*[len(component_data)*[0.]]
+cylinders = n_Cylinders*[len(component_data)*[0.]] 
 TCs = n_TCs*[len(component_data)*[0.]]
 
 for i in range(n_Cylinders):
@@ -640,12 +659,24 @@ for i in range(n_TCs):
     TC[4] = fs[23]
     print TC
     for k in [5,6]:
-        TC[k] = components[k][i]
+        TC[k] = component_data[k][i]
     TC[7] = fs[19]
     TC[8] = fs[22]
     TC[9] = fs[20]
     TCs[i] = TC
 
+engine = len(component_data)*[0.]
+engine[0] = fs[16]
+engine[1] = fs[17]
+engine[2] = fs[80]
+engine[3] = fs[25]
+engine[4] = fs[23]
+engine[5] = fs[18]
+engine[6] = fs[81]
+engine[7] = fs[19]
+engine[8] = fs[22]
+engine[9] = fs[20]
+engine = [engine]
 
 # Check if the symptoms in measurement are above the limit for all
 # the available faults in the fault-symptom matrix
@@ -657,7 +688,7 @@ for i in range(n_TCs):
 # B. Turbocharger diagnosis
 # C. Overall diagnosis
 all_faults = []
-for cyl in cylinders:
+for cc, cyl in enumerate(cylinders):
     cylinder_faults = []
     for i in range(len(fault_symptom_cyl)):
         ratio = 0.
@@ -672,13 +703,63 @@ for cyl in cylinders:
                 crOK = dominant
             else:
                 crOK = 0.
-        print c, n100, crOK
+#        print c, n100, crOK
         ratio = c/n100 *(100-dominant) + crOK
 #        print c/n100*100, ratio
         if ratio >= limit:
             cylinder_faults.append([faults_cyl[i], ratio])
-            print cylinder_faults
+#            print cylinder_faults
+    cylinder_faults.insert(0, cc+1)    
+    cylinder_faults.insert(0, 'Cyl')
     all_faults.append(cylinder_faults)
+        
+for cc, tc in enumerate(TCs):
+    TC_faults = []
+    for i in range(len(fault_symptom_TC)):
+        ratio = 0.
+        c = 0
+        n100 = fs_cols
+        for j in range(fs_cols):
+            if tc[j] == fault_symptom_TC[i][j]:
+                c += 1 # if the symptom is detected the counter increases
+            if fault_symptom_TC[i][j] == 100:
+                n100 -= 1 # if a symptom is not mapped then the denominator decreases
+            if tc[cr[i]] == fault_symptom_TC[i][cr[i]]:
+                crOK = dominant
+            else:
+                crOK = 0.
+#        print c, n100, crOK
+        ratio = c/n100 *(100-dominant) + crOK
+#        print c/n100*100, ratio
+        if ratio >= limit:
+            TC_faults.append([faults_TC[i], ratio])
+#            print cylinder_faults
+    TC_faults.insert(0, cc+1)    
+    TC_faults.insert(0, 'TC')            
+    all_faults.append(TC_faults)
+    
+for eng in engine:
+    engine_faults = []
+    for i in range(len(fault_symptom_eng)):
+        ratio = 0.
+        c = 0
+        n100 = fs_cols
+        for j in range(fs_cols):
+            if eng[j] == fault_symptom_eng[i][j]:
+                c += 1 # if the symptom is detected the counter increases
+            if fault_symptom_eng[i][j] == 100:
+                n100 -= 1 # if a symptom is not mapped then the denominator decreases
+            if eng[cr[i]] == fault_symptom_eng[i][cr[i]]:
+                crOK = dominant
+            else:
+                crOK = 0.
+#        print c, n100, crOK
+        ratio = c/n100 *(100-dominant) + crOK
+        print c/n100*100, ratio
+        if ratio >= limit:
+            engine_faults.append(['Overall', i, faults_engine[i], ratio])
+#            print cylinder_faults            
+    all_faults.append(engine_faults)    
 #print
 #obs_faults = []
 #for i in range(fs_rows):
@@ -706,33 +787,33 @@ for cyl in cylinders:
 #for i in obs_faults: 
 #    print i[0], '{:.2f}'.format(i[1])+'%'
 
-
+ff_all.extend(all_faults)
 #-----------------------------------------------------------------------------#
 #-------------------------------- PRINTING -----------------------------------#
 #-----------------------------------------------------------------------------#
 
 # Observations
-#print 'Obsrevations:' 
-#for observation in observations:
-#    print observation
-#
-## Sensor Warnings!
-##print k
-#print
-#print 'Sensor Warnings:'
-#if k == 0:
-#    print 'NO SENSOR WARNINGS DETECTED'
-#else:
-#    for sw in sensor_warning:
-#        print sw
-#
-#print
-#print 'Possible Faults:'       
-## Possible Faults
-#if ff_all ==[]:
-#    print 'No faults detected from main algorithm'
-#else:
-#    for ff in ff_all:
-#        print ff 
+print 'Obsrevations:' 
+for observation in observations:
+    print observation
+
+# Sensor Warnings!
+#print k
+print
+print 'Sensor Warnings:'
+if k == 0:
+    print 'NO SENSOR WARNINGS DETECTED'
+else:
+    for sw in sensor_warning:
+        print sw
+
+print
+print 'Possible Faults:'       
+# Possible Faults
+if ff_all ==[]:
+    print 'No faults detected from main algorithm'
+else:
+    for ff in ff_all:
+        print ff 
         
         
