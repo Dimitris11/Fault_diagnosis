@@ -8,9 +8,9 @@ Created on Thu Oct 29 15:19:04 2015
 ff_all =[]; sensor_warning = []
 #vessel_name = 'CAP PHILIPPE';
 #loading   = 0 # 1 if vessel is loaded, 0 if in ballast condition
-limit     = 50. # Percentage ( % )
-dominant  = 20. # Percentage ( % )
-#filename1 = 'Fault_Symptom_matrix.csv'
+limit     = 20. # Percentage ( % )
+dominant  = 25. # Percentage ( % )
+filename1 = 'Fault_Symptom_matrix_component.csv'
 filename2 = 'Philippe_01_2007_enhanced.csv'
 #filename2 = 'ADP_AUG_CAP FELIX_2014_unprotected_celsius.CSV'
 #filename2 = 'ADP_JUN_CAP CHARLES_2014 - unprotected_Shaft.CSV'
@@ -103,27 +103,36 @@ DTww_shop = map(float,[1.5, 5.5, 13, 16.5, 21.5, 25.5])
 ############ Import data from files and store to arrays/list ##################
 
 #read and store the FAULTS csv as numpy array
-#row_count, fulltable = create_table(filename1)
-#fault_symptom = fulltable[1:row_count]
-fulltable = [['Faults', 'critical param', 'Exhaust Gas Temp', 'Scavenge Pressure', 'Turbocharger Speed', 'Pcomp/Pscav', 'Maximum Pressure', 'Compression Pressure', 'Indicated Power', 'Pmax-Pcomp', 'Pexh', 'Tscav', 'Shaft Power', 'TC speed/Pscav'],
-['Injection nozzles (or fuel valves) in poor condition, nozzle tip broken', '4', '1', '1', '1', '1', '-1', '1', '0', '-1', '1', '1', '0', '1'],
-['Start of injection too late', '4', '1', '1', '1', '0', '-1', '1', '100', '-1', '1', '0', '100', '0'],
-['Turbine Rotor blade tips damaged (rubbing)', '2', '1', '-1', '-1', '0', '-1', '-1', '100', '1', '-1', '0', '100', '-1'],
-['Exhaust valve leaking', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '100', '100', '1', '-1', '100'],
-['Blow-by in combustion chamber', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '1', '1', '1', '-1', '-1'],
-['Air Filter before Compressor fouled', '0', '1', '-1', '1', '0', '-1', '-1', '100', '0', '-1', '0', '100', '1'],
-['Fouled air or water side (AC) -Cooling water pipes or water passages chocked', '9', '1', '1', '1', '-1', '1', '1', '-1', '-1', '1', '1', '100', '-1'],
-['Start of injection too early', '4', '-1', '-1', '-1', '0', '1', '-1', '100', '1', '-1', '0', '100', '0']]
-row_count = len(fulltable)
+row_count, fulltable = create_table(filename1)
+fault_symptom = fulltable[1:row_count]
+#fulltable = [['Faults', 'critical param', 'Exhaust Gas Temp', 'Scavenge Pressure', 'Turbocharger Speed', 'Pcomp/Pscav', 'Maximum Pressure', 'Compression Pressure', 'Indicated Power', 'Pmax-Pcomp', 'Pexh', 'Tscav', 'Shaft Power', 'TC speed/Pscav'],
+#['Injection nozzles (or fuel valves) in poor condition, nozzle tip broken', '4', '1', '1', '1', '1', '-1', '1', '0', '-1', '1', '1', '0', '1'],
+#['Start of injection too late', '4', '1', '1', '1', '0', '-1', '1', '100', '-1', '1', '0', '100', '0'],
+#['Turbine Rotor blade tips damaged (rubbing)', '2', '1', '-1', '-1', '0', '-1', '-1', '100', '1', '-1', '0', '100', '-1'],
+#['Exhaust valve leaking', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '100', '100', '1', '-1', '100'],
+#['Blow-by in combustion chamber', '5', '1', '1', '1', '-1', '-1', '-1', '-1', '1', '1', '1', '-1', '-1'],
+#['Air Filter before Compressor fouled', '0', '1', '-1', '1', '0', '-1', '-1', '100', '0', '-1', '0', '100', '1'],
+#['Fouled air or water side (AC) -Cooling water pipes or water passages chocked', '9', '1', '1', '1', '-1', '1', '1', '-1', '-1', '1', '1', '100', '-1'],
+#['Start of injection too early', '4', '-1', '-1', '-1', '0', '1', '-1', '100', '1', '-1', '0', '100', '0']]
+#row_count = len(fulltable)
 fault_symptom = [x[2:len(x)] for x in fulltable[1:row_count]]
 fault_symptom = [ map(float,x) for x in fault_symptom ]
 # Critical parameter Indices
 cr = map(int, [ x[1] for x in fulltable[1:row_count] ])
 # Store the engine's parameters(symptoms) in a list
-parameters = fulltable[1:]
+parameters = fulltable[0][2:]
 # Store the engine's possible faults in a list
 faults = [fulltable[i][0] for i in range(1, row_count)]
+#for i in range(len(fault_symptom)):
+#    fault_symptom[i].pop(10)
+#    fault_symptom[i].pop(6)
 
+fault_symptom_cyl = [fault_symptom[0]]+[fault_symptom[1]]+[fault_symptom[3]]\
++[fault_symptom[4]]+[fault_symptom[7]]
+
+fault_symptom_TC = [fault_symptom[2]]+[fault_symptom[6]]
+faults_cyl = faults[0:2]+faults[3:5]+[faults[7]]
+faults_TC = [faults[2]]+[faults[6]]
 #read and store the MEASUREMENT csv 
 row_count2, fulltable2 = create_table(filename2)
 parameters_all = [x[0] for x in fulltable2[1:]]
@@ -199,34 +208,49 @@ parameters_all.extend(['Pcomp_Pscav', 'Tc_Pscav', 'Pscav_Pexh', 'eff_C',\
 'eff_T', 'eff_TC', 'Load', 'Mechanical efficiency'])
 
 # Calculate differences and append to HC_data
-ex = [x[0] for x in HC_data] 
-obs = [x[1] for x in HC_data]
+ex   = [x[0] for x in HC_data] 
+obs  = [x[1] for x in HC_data]
 diff = [ (obs[i]-ex[i]) for i in range(len(HC_data)) ]
 diff_percent = [0]*len(HC_data) # Initialize a list of zeros
 diff_percent = [ (diff[i]/obs[i]*100.) if obs[i] !=0. else None for i in range(len(HC_data)) ]
-error_margin = len(HC_data)*[0] # Initialize deviation for each parameter
-fs = len(HC_data)*[0] # Initialize an array of zeros to store the -1, 0, 1 
+
 
 # Manipulate per Component data
-component_data = [x[3:] for x in HC_data1 if x[3] !='']
-for i, h in enumerate(component_data):
+components = [ x[3:] for x in HC_data1 if x[3] !='' ]
+for i, h in enumerate(components):
     for j, h2 in enumerate(h):
         if h2 == '':
-            component_data [i][j] = '0'
-component_data = [map(float, i) for i in component_data]
+            components [i][j] = '0'
+components = [map(float, i) for i in components]
 
-Pcomp_Pscav_component = [x/obs[19] for x in component_data[0]]
-Pmax_Pcomp_component = [a - b for a, b in zip(component_data[1], component_data[0])]
-Tc_Pscav_component = [x/obs[19] for x in component_data[2] if x!=0]
-component_data.pop(3)
-component_data.insert(2, Pcomp_Pscav_component)
-component_data.insert(3, Pmax_Pcomp_component)
-component_data.insert(4, [obs[23]])
-component_data.insert(6, Tc_Pscav_component)
-component_data.insert(7, [obs[19]])
-component_data.insert(8, [obs[22]])
-component_data.insert(9, [obs[20]])
+# Make components = -1, 0, 1
+   
 
+Pcomp_Pscav_component = [x/obs[19] for x in components[0]]
+Pmax_Pcomp_component = [a - b for a, b in zip(components[1], components[0])]
+Tc_Pscav_component = [x/obs[19] for x in components[2] if x!=0]
+components.pop(3)
+components.insert(2, Pcomp_Pscav_component)
+components.insert(3, Pmax_Pcomp_component)
+components.insert(4, [obs[23]])
+components.insert(6, Tc_Pscav_component)
+components.insert(7, [obs[19]])
+components.insert(8, [obs[22]])
+components.insert(9, [obs[20]])
+
+
+
+cd = len(components)*[[]]
+cd[0] = [(x-ex[16])/x for x in components[0] if x!=0]
+cd[1] = [(x-ex[17])/x for x in components[1] if x!=0]
+cd[2] = [(x-ex[80])/x for x in components[2] if x!=0]
+cd[3] = [(x-ex[25])/x for x in components[3] if x!=0]
+cd[5] = [(x-ex[18])/x for x in components[5] if x!=0]
+cd[6] = [(x-ex[81])/x for x in components[6] if x!=0] 
+
+
+
+error_margin = len(HC_data)*[0] # Initialize deviation for each parameter
 error_margin[14]= 3  # Error margin for Indicated Power 
 error_margin[15]= 3  # Error margin for Shaft Power
 error_margin[16]= 3  # Error margin for Pcomp 
@@ -247,6 +271,9 @@ error_margin[85]= 5  # Error margin for Turbocharger efficiency
 error_margin[87]= 3  # Error margin for engine mechanical efficiency
 
 
+
+
+fs = len(HC_data)*[0] # Initialize an array of zeros to store the -1, 0, 1 
 units = []
 for i in range(len(HC_data)):   
     if diff_percent[i] == None :
@@ -262,6 +289,17 @@ for i in range(len(HC_data)):
     if '[' in s: units.append(s[s.find("[")+1:s.find("]")])
     else: units.append(' ')   
             
+component_data = len(components)*[[]]
+component_data[0] = [1. if  x > error_margin[16]/100. else -1. if x < -error_margin[16]/100. else 0. for x in cd[0]]
+component_data[1] = [1. if  x > error_margin[17]/100. else -1. if x < -error_margin[17]/100. else 0. for x in cd[1]]
+component_data[2] = [1. if  x > error_margin[80]/100. else -1. if x < -error_margin[80]/100. else 0. for x in cd[2]]
+component_data[3] = [1. if  x > error_margin[25]/100. else -1. if x < -error_margin[25]/100. else 0. for x in cd[3]]
+component_data[4] = [fs[23]]
+component_data[5] = [1. if  x > error_margin[18]/100. else -1. if x < -error_margin[18]/100. else 0. for x in cd[5]]
+component_data[6] = [1. if  x > error_margin[81]/100. else -1. if x < -error_margin[81]/100. else 0. for x in cd[6]]
+component_data[7] = [fs[19]]
+component_data[8] = [fs[22]]
+component_data[9] = [fs[20]]
 
 #HC_rows = int(np.shape(HC_data)[0])
 #HC_cols = int(np.shape(HC_data)[1])
@@ -547,59 +585,123 @@ fs_cols = len((fault_symptom)[0])
 
 # Create the array for comparison from the HC_data
 measurement = fs_cols*[1] # Initialize a list of ones
-measurement[0]  = fs[23] # 01. Texh
-measurement[1]  = fs[19] # 02. Pscav
-measurement[2]  = fs[18] # 03. TC speed
-measurement[3]  = fs[50] # 04. Pcomp/Pscav
-measurement[4]  = fs[17] # 05. Pmax
-measurement[5]  = fs[16] # 06. Pcomp
-measurement[6]  = fs[14] # 07. Indicated Power
-measurement[7]  = fs[25] # 08. Pmax-Pcomp
-measurement[8]  = fs[22] # 09. Pexh
-measurement[9]  = fs[20] # 10. Tscav
-measurement[10] = fs[15] # 11. Shaft Power
-measurement[11] = fs[51] # 12. TC speed/ Pscav
+#measurement[0]  = fs[23] # 01. Texh
+#measurement[1]  = fs[19] # 02. Pscav
+#measurement[2]  = fs[18] # 03. TC speed
+#measurement[3]  = fs[80] # 04. Pcomp/Pscav
+#measurement[4]  = fs[17] # 05. Pmax
+#measurement[5]  = fs[16] # 06. Pcomp
+#measurement[6]  = fs[14] # 07. Indicated Power
+#measurement[7]  = fs[25] # 08. Pmax-Pcomp
+#measurement[8]  = fs[22] # 09. Pexh
+#measurement[9]  = fs[20] # 10. Tscav
+#measurement[10] = fs[15] # 11. Shaft Power
+#measurement[11] = fs[81] # 12. TC speed/ Pscav
 
+
+# Different mapping for component analysis
+#measurement[0]  = fs[16] # 01. Pcomp
+#measurement[1]  = fs[17] # 02. Pmax
+#measurement[2]  = fs[80] # 03. Pcomp/Pscav
+#measurement[3]  = fs[25] # 04. Pmax-Pcomp
+#measurement[4]  = fs[23] # 05. Texh
+#measurement[5]  = fs[18] # 06. TC speed
+#measurement[6]  = fs[81] # 07. TC speed/ Pscav
+#measurement[7]  = fs[19] # 08. Pscav
+#measurement[8]  = fs[22] # 09. Pexh
+#measurement[9]  = fs[20] # 10. Tscav
 
 
 # Construct the component table which will iterate over the fault-symtom matrix
 # to find the faults for each component (cylinder, TC, etc.)
 n_Cylinders = 6
-cylinder = n_Cylinders*[len(component_data)*[0.]]
-cylinder = len(component_data)*[0]
-for i in range(6):
-    for k in range(4):
-        cylinder[k] = component_data[k][i]
+n_TCs = 2
+cylinders = n_Cylinders*[len(component_data)*[0.]]
+TCs = n_TCs*[len(component_data)*[0.]]
+
+for i in range(n_Cylinders):
+    cyl = len(component_data)*[0]
+    for k in [0,1,2,3]:
+        cyl[k] = component_data[k][i]
+    cyl[4] = fs[23]
+    cyl[5] = fs[18]
+    cyl[6] = fs[81]
+    cyl[7] = fs[19]
+    cyl[8] = fs[22]
+    cyl[9] = fs[20]
+    cylinders[i] = cyl     
     
+for i in range(n_TCs):
+    TC = len(components)*[0]
+    TC[0] = fs[16]
+    TC[1] = fs[17]
+    TC[2] = fs[80]
+    TC[3] = fs[25]
+    TC[4] = fs[23]
+    print TC
+    for k in [5,6]:
+        TC[k] = components[k][i]
+    TC[7] = fs[19]
+    TC[8] = fs[22]
+    TC[9] = fs[20]
+    TCs[i] = TC
 
 
 # Check if the symptoms in measurement are above the limit for all
 # the available faults in the fault-symptom matrix
 #print 
+
 #print 'SECTION 4 - Main Algorithm:'
-print
-obs_faults = []
-for i in range(fs_rows):
-    ratio = 0.
-    c = 0. # counter
-    n100 = fs_cols # initial number of columns
-    for j in range(fs_cols):
-        if measurement[j] == fault_symptom[i][j]:
-            c += 1 # if the symptom is detected the counter increases
-        if fault_symptom[i][j] == 100:
-            n100 -= 1 # if a symptom is not mapped then the denominator decreases
-        if measurement[cr[i]] == fault_symptom[i][cr[i]]:
-            crOK = dominant
-        else:
-            crOK = 0.
-#    print c, n100, crOK
-    ratio = c/n100 *(100-dominant) + crOK
-#    print c/n100*100, ratio
-    if ratio >= limit:
-        obs_faults.append([faults[i], ratio])
-#        print faults[i]+ ' {:.2f}%'.format(ratio)
-        ff_all.append(faults[i])
-obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
+# Separate the algorithm in 3 parts:
+# A. Cylinder diagnosis
+# B. Turbocharger diagnosis
+# C. Overall diagnosis
+all_faults = []
+for cyl in cylinders:
+    cylinder_faults = []
+    for i in range(len(fault_symptom_cyl)):
+        ratio = 0.
+        c = 0
+        n100 = fs_cols
+        for j in range(fs_cols):
+            if cyl[j] == fault_symptom_cyl[i][j]:
+                c += 1 # if the symptom is detected the counter increases
+            if fault_symptom_cyl[i][j] == 100:
+                n100 -= 1 # if a symptom is not mapped then the denominator decreases
+            if cyl[cr[i]] == fault_symptom_cyl[i][cr[i]]:
+                crOK = dominant
+            else:
+                crOK = 0.
+        print c, n100, crOK
+        ratio = c/n100 *(100-dominant) + crOK
+#        print c/n100*100, ratio
+        if ratio >= limit:
+            cylinder_faults.append([faults_cyl[i], ratio])
+            print cylinder_faults
+    all_faults.append(cylinder_faults)
+#print
+#obs_faults = []
+#for i in range(fs_rows):
+#    ratio = 0.
+#    c = 0. # counter
+#    n100 = fs_cols # initial number of columns
+#    for j in range(fs_cols):
+#        if measurement[j] == fault_symptom[i][j]:
+#            c += 1 # if the symptom is detected the counter increases
+#        if fault_symptom[i][j] == 100:
+#            n100 -= 1 # if a symptom is not mapped then the denominator decreases
+#        if measurement[cr[i]] == fault_symptom[i][cr[i]]:
+#            crOK = dominant
+#        else:
+#            crOK = 0.
+##    print c, n100, crOK
+#    ratio = c/n100 *(100-dominant) + crOK
+##    print c/n100*100, ratio
+#    if ratio >= limit:
+#        obs_faults.append([faults[i], ratio])
+##        print faults[i]+ ' {:.2f}%'.format(ratio)
+#        ff_all.append(faults[i])
+#obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
 
 #for i in obs_faults: 
 #    print i[0], '{:.2f}'.format(i[1])+'%'
@@ -610,27 +712,27 @@ obs_faults.sort(reverse = True, key = lambda x: float(x[1]))
 #-----------------------------------------------------------------------------#
 
 # Observations
-print 'Obsrevations:' 
-for observation in observations:
-    print observation
-
-# Sensor Warnings!
-#print k
-print
-print 'Sensor Warnings:'
-if k == 0:
-    print 'NO SENSOR WARNINGS DETECTED'
-else:
-    for sw in sensor_warning:
-        print sw
-
-print
-print 'Possible Faults:'       
-# Possible Faults
-if ff_all ==[]:
-    print 'No faults detected from main algorithm'
-else:
-    for ff in ff_all:
-        print ff 
+#print 'Obsrevations:' 
+#for observation in observations:
+#    print observation
+#
+## Sensor Warnings!
+##print k
+#print
+#print 'Sensor Warnings:'
+#if k == 0:
+#    print 'NO SENSOR WARNINGS DETECTED'
+#else:
+#    for sw in sensor_warning:
+#        print sw
+#
+#print
+#print 'Possible Faults:'       
+## Possible Faults
+#if ff_all ==[]:
+#    print 'No faults detected from main algorithm'
+#else:
+#    for ff in ff_all:
+#        print ff 
         
         
